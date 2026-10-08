@@ -1,0 +1,5 @@
+-- NEXON HUB
+-- Updated Discord: https://discord.gg/4eEpets5D
+-- Asset ID: 117044451240499
+
+loadstring(game:HttpGet("https://pastebin.com/raw/t0B3EsvG"))()
