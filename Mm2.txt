@@ -1,0 +1,1769 @@
+if game.PlaceId == 142823291 then
+
+-- Nexon Hub - Ultimate MM2 Edition
+-- Script Owner: xmijovanxmi
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+local Camera = Workspace.CurrentCamera
+
+local LocalPlayer = Players.LocalPlayer
+
+local NOTIF_TITLE = "Clap that and make a ticket"
+
+local GuiParent = CoreGui
+pcall(function()
+    local test = Instance.new("ScreenGui")
+    test.Parent = CoreGui
+    test:Destroy()
+end)
+if not GuiParent then GuiParent = LocalPlayer:WaitForChild("PlayerGui") end
+
+if GuiParent:FindFirstChild("NexonHub") then GuiParent.NexonHub:Destroy() end
+if GuiParent:FindFirstChild("NexonHubFly") then GuiParent.NexonHubFly:Destroy() end
+if GuiParent:FindFirstChild("NexonCursor") then GuiParent.NexonCursor:Destroy() end
+
+local THEME = {
+    Bg        = Color3.fromRGB(8, 8, 8),
+    Sidebar   = Color3.fromRGB(12, 12, 12),
+    Topbar    = Color3.fromRGB(15, 5, 5),
+    Card      = Color3.fromRGB(18, 6, 6),
+    Accent    = Color3.fromRGB(220, 20, 60),
+    Text      = Color3.fromRGB(255, 230, 230),
+    SubText   = Color3.fromRGB(180, 120, 120),
+    Stroke    = Color3.fromRGB(80, 15, 25),
+    ToggleOff = Color3.fromRGB(40, 15, 20),
+}
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NexonHub"
+ScreenGui.Parent = GuiParent
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = THEME.Bg
+MainFrame.BorderColor3 = THEME.Stroke
+MainFrame.BorderSizePixel = 1
+MainFrame.Position = UDim2.new(0.5, -310, 0.5, -195)
+MainFrame.Size = UDim2.new(0, 620, 0, 390)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+local MainGlow = Instance.new("UIStroke")
+MainGlow.Parent = MainFrame
+MainGlow.Color = THEME.Accent
+MainGlow.Transparency = 0.4
+MainGlow.Thickness = 1.5
+
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = THEME.Topbar
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 50)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 10)
+TopBarCorner.Parent = TopBar
+
+local TopBarCover = Instance.new("Frame")
+TopBarCover.Parent = TopBar
+TopBarCover.BackgroundColor3 = THEME.Topbar
+TopBarCover.BorderSizePixel = 0
+TopBarCover.Position = UDim2.new(0, 0, 1, -8)
+TopBarCover.Size = UDim2.new(1, 0, 0, 8)
+
+local LogoImage = Instance.new("ImageLabel")
+LogoImage.Parent = TopBar
+LogoImage.BackgroundTransparency = 1
+LogoImage.Position = UDim2.new(0, 15, 0, 10)
+LogoImage.Size = UDim2.new(0, 30, 0, 30)
+LogoImage.Image = "rbxassetid://129531869048559"
+LogoImage.ScaleType = Enum.ScaleType.Fit
+LogoImage.ZIndex = 2
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = TopBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 55, 0, 7)
+TitleLabel.Size = UDim2.new(0, 300, 0, 20)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Nexon Hub | Welcome, " .. LocalPlayer.Name
+TitleLabel.TextColor3 = THEME.Text
+TitleLabel.TextSize = 16
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local SubtitleLabel = Instance.new("TextLabel")
+SubtitleLabel.Parent = TopBar
+SubtitleLabel.BackgroundTransparency = 1
+SubtitleLabel.Position = UDim2.new(0, 55, 0, 26)
+SubtitleLabel.Size = UDim2.new(0, 220, 0, 16)
+SubtitleLabel.Font = Enum.Font.Gotham
+SubtitleLabel.Text = "Murder Mystery 2 • Ultimate Edition"
+SubtitleLabel.TextColor3 = THEME.SubText
+SubtitleLabel.TextSize = 10
+SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local OpenButton = Instance.new("ImageButton")
+OpenButton.Parent = ScreenGui
+OpenButton.BackgroundColor3 = THEME.Topbar
+OpenButton.Position = UDim2.new(1, -60, 0.5, -30)
+OpenButton.Size = UDim2.new(0, 50, 0, 50)
+OpenButton.Image = "rbxassetid://129531869048559"
+OpenButton.ScaleType = Enum.ScaleType.Fit
+OpenButton.Visible = false
+OpenButton.ZIndex = 5
+
+local OpenButtonCorner = Instance.new("UICorner")
+OpenButtonCorner.CornerRadius = UDim.new(1, 0)
+OpenButtonCorner.Parent = OpenButton
+
+local OpenButtonStroke = Instance.new("UIStroke")
+OpenButtonStroke.Parent = OpenButton
+OpenButtonStroke.Color = THEME.Accent
+OpenButtonStroke.Thickness = 1.5
+
+local CloseButton = Instance.new("ImageButton")
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = THEME.Card
+CloseButton.Position = UDim2.new(1, -42, 0, 10)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Image = "rbxassetid://4917745937"
+CloseButton.ScaleType = Enum.ScaleType.Fit
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+local function ToggleMenu()
+    MainFrame.Visible = not MainFrame.Visible
+    OpenButton.Visible = not MainFrame.Visible
+end
+
+CloseButton.MouseButton1Click:Connect(ToggleMenu)
+OpenButton.MouseButton1Click:Connect(ToggleMenu)
+
+local Sidebar = Instance.new("ScrollingFrame")
+Sidebar.Parent = MainFrame
+Sidebar.Active = true
+Sidebar.BackgroundColor3 = THEME.Sidebar
+Sidebar.BorderSizePixel = 0
+Sidebar.Position = UDim2.new(0, 0, 0, 50)
+Sidebar.Size = UDim2.new(0, 160, 1, -50)
+Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
+Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Sidebar.ScrollBarThickness = 2
+Sidebar.ScrollBarImageColor3 = THEME.Accent
+
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Parent = Sidebar
+SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarLayout.Padding = UDim.new(0, 6)
+
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.Parent = Sidebar
+SidebarPadding.PaddingTop = UDim.new(0, 6)
+
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Parent = MainFrame
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.Position = UDim2.new(0, 175, 0, 60)
+ContentContainer.Size = UDim2.new(1, -185, 1, -70)
+
+local Tabs = {}
+local activePage = nil
+
+local function CreateTab(name, order)
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Parent = Sidebar
+    TabBtn.BackgroundColor3 = THEME.Card
+    TabBtn.BackgroundTransparency = 1
+    TabBtn.BorderSizePixel = 0
+    TabBtn.Size = UDim2.new(1, 0, 0, 36)
+    TabBtn.Font = Enum.Font.GothamMedium
+    TabBtn.Text = "    " .. name
+    TabBtn.TextColor3 = THEME.SubText
+    TabBtn.TextSize = 12
+    TabBtn.TextXAlignment = Enum.TextXAlignment.Left
+    TabBtn.LayoutOrder = order
+    TabBtn.AutoButtonColor = false
+
+    local Page = Instance.new("ScrollingFrame")
+    Page.Parent = ContentContainer
+    Page.Active = true
+    Page.BackgroundTransparency = 1
+    Page.BorderSizePixel = 0
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Page.ScrollBarThickness = 4
+    Page.ScrollBarImageColor3 = THEME.Accent
+    Page.Visible = false
+
+    local PageLayout = Instance.new("UIListLayout")
+    PageLayout.Parent = Page
+    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    PageLayout.Padding = UDim.new(0, 6)
+
+    local PagePadding = Instance.new("UIPadding")
+    PagePadding.Parent = Page
+    PagePadding.PaddingRight = UDim.new(0, 8)
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, t in pairs(Tabs) do
+            t.Page.Visible = false
+            TweenService:Create(t.Button, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundTransparency = 1, TextColor3 = THEME.SubText}):Play()
+        end
+        Page.Visible = true
+        TweenService:Create(TabBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.3, TextColor3 = THEME.Text}):Play()
+    end)
+
+    if not activePage then
+        Page.Visible = true
+        TabBtn.BackgroundTransparency = 0.3
+        TabBtn.TextColor3 = THEME.Text
+        activePage = Page
+    end
+
+    Tabs[name] = {Button = TabBtn, Page = Page}
+    return Page
+end
+
+local HomeTab       = CreateTab("Home", 1)
+local VisualsTab    = CreateTab("Visuals", 2)
+local MovementTab   = CreateTab("Movement", 3)
+local MurdererTab   = CreateTab("Murderer", 4)
+local SheriffTab    = CreateTab("Sheriff", 5)
+local FarmTab       = CreateTab("Auto Farm", 6)
+local TeleportTab   = CreateTab("Teleports", 7)
+local ThemesTab     = CreateTab("Themes", 8)
+local ConfusionsTab = CreateTab("Confusions", 9)
+local CreditsTab    = CreateTab("Credits", 10)
+
+local ThemeElements = {}
+local function RegisterElement(element, elementType)
+    table.insert(ThemeElements, {Object = element, Type = elementType})
+end
+
+local function ApplyGlobalTheme(bgColor, sidebarColor, topbarColor, accentColor, textColor)
+    MainFrame.BackgroundColor3 = bgColor
+    Sidebar.BackgroundColor3 = sidebarColor
+    TopBar.BackgroundColor3 = topbarColor
+    TopBarCover.BackgroundColor3 = topbarColor
+    MainGlow.Color = accentColor
+    OpenButtonStroke.Color = accentColor
+    OpenButton.BackgroundColor3 = topbarColor
+    TitleLabel.TextColor3 = textColor
+    SubtitleLabel.TextColor3 = Color3.fromRGB(
+        math.clamp(textColor.R * 255 * 0.7, 0, 255),
+        math.clamp(textColor.G * 255 * 0.7, 0, 255),
+        math.clamp(textColor.B * 255 * 0.7, 0, 255)
+    )
+    for _, item in pairs(ThemeElements) do
+        if item.Type == "Card" then item.Object.BackgroundColor3 = sidebarColor
+        elseif item.Type == "Text" then item.Object.TextColor3 = textColor
+        elseif item.Type == "Button" then item.Object.BackgroundColor3 = accentColor end
+    end
+end
+
+local function AddThemeButton(parent, themeName, bgColor, sidebarColor, topbarColor, accentColor, textColor)
+    local Btn = Instance.new("TextButton")
+    Btn.Parent = parent
+    Btn.BackgroundColor3 = sidebarColor
+    Btn.BorderSizePixel = 0
+    Btn.Size = UDim2.new(1, -10, 0, 48)
+    Btn.Font = Enum.Font.GothamBold
+    Btn.Text = "  " .. themeName .. " Theme"
+    Btn.TextColor3 = accentColor
+    Btn.TextSize = 14
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    Btn.AutoButtonColor = false
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Btn
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Btn; Stroke.Color = accentColor; Stroke.Transparency = 0.4; Stroke.Thickness = 1.5
+    Btn.MouseButton1Click:Connect(function() ApplyGlobalTheme(bgColor, sidebarColor, topbarColor, accentColor, textColor) end)
+end
+
+AddThemeButton(ThemesTab, "Crimson", THEME.Bg, THEME.Sidebar, THEME.Topbar, THEME.Accent, THEME.Text)
+AddThemeButton(ThemesTab, "Dark", Color3.fromRGB(11, 11, 15), Color3.fromRGB(13, 13, 18), Color3.fromRGB(16, 16, 22), Color3.fromRGB(0, 150, 255), Color3.fromRGB(255, 255, 255))
+AddThemeButton(ThemesTab, "Gray", Color3.fromRGB(35, 35, 45), Color3.fromRGB(25, 25, 32), Color3.fromRGB(30, 30, 38), Color3.fromRGB(180, 180, 180), Color3.fromRGB(240, 240, 240))
+AddThemeButton(ThemesTab, "Light", Color3.fromRGB(240, 240, 245), Color3.fromRGB(225, 225, 230), Color3.fromRGB(230, 230, 235), Color3.fromRGB(40, 100, 255), Color3.fromRGB(30, 30, 40))
+AddThemeButton(ThemesTab, "Cyberpunk", Color3.fromRGB(18, 5, 28), Color3.fromRGB(12, 2, 20), Color3.fromRGB(24, 8, 38), Color3.fromRGB(255, 0, 128), Color3.fromRGB(255, 150, 220))
+AddThemeButton(ThemesTab, "Matrix", Color3.fromRGB(5, 20, 10), Color3.fromRGB(2, 14, 6), Color3.fromRGB(8, 28, 14), Color3.fromRGB(0, 255, 65), Color3.fromRGB(180, 255, 200))
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftControl then ToggleMenu() end
+end)
+
+local Keybinds = {}
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        for _, kb in pairs(Keybinds) do
+            if kb.Key and input.KeyCode == kb.Key and kb.Callback then pcall(kb.Callback) end
+        end
+    end
+end)
+
+-- ============================================================
+-- UI BUILDERS (with hint labels)
+-- ============================================================
+local function AddHint(parent, text)
+    local Hint = Instance.new("TextLabel")
+    Hint.Parent = parent
+    Hint.BackgroundTransparency = 1
+    Hint.Size = UDim2.new(1, -10, 0, 16)
+    Hint.Font = Enum.Font.Gotham
+    Hint.Text = "    " .. text
+    Hint.TextColor3 = THEME.SubText
+    Hint.TextSize = 10
+    Hint.TextXAlignment = Enum.TextXAlignment.Left
+    return Hint
+end
+
+local function AddToggleWithKeybind(parent, title, hint, defaultState, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = parent; Frame.BackgroundColor3 = THEME.Card; Frame.BorderSizePixel = 0; Frame.Size = UDim2.new(1, -10, 0, hint and 62 or 48)
+    RegisterElement(Frame, "Card")
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Frame
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Frame; Stroke.Color = THEME.Stroke; Stroke.Transparency = 0.4
+
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Frame; Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 15, 0, 0); Label.Size = UDim2.new(0.45, 0, 1, 0)
+    Label.Font = Enum.Font.GothamMedium; Label.Text = title; Label.TextColor3 = THEME.Text; Label.TextSize = 13
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    RegisterElement(Label, "Text")
+
+    if hint then
+        local h = Instance.new("TextLabel")
+        h.Parent = Frame; h.BackgroundTransparency = 1
+        h.Position = UDim2.new(0, 15, 0, 40); h.Size = UDim2.new(1, -30, 0, 14)
+        h.Font = Enum.Font.Gotham; h.Text = hint; h.TextColor3 = THEME.SubText; h.TextSize = 10
+        h.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    local KeybindBtn = Instance.new("TextButton")
+    KeybindBtn.Parent = Frame; KeybindBtn.BackgroundColor3 = THEME.ToggleOff
+    KeybindBtn.Position = UDim2.new(1, -115, 0, 12); KeybindBtn.Size = UDim2.new(0, 50, 0, 24)
+    KeybindBtn.Font = Enum.Font.GothamMedium; KeybindBtn.Text = "( ... )"; KeybindBtn.TextColor3 = THEME.SubText
+    KeybindBtn.TextSize = 11; KeybindBtn.AutoButtonColor = false
+    local KbCorner = Instance.new("UICorner"); KbCorner.CornerRadius = UDim.new(0, 6); KbCorner.Parent = KeybindBtn
+
+    local SwitchBg = Instance.new("TextButton")
+    SwitchBg.Parent = Frame; SwitchBg.BackgroundColor3 = defaultState and THEME.Accent or THEME.ToggleOff
+    SwitchBg.Position = UDim2.new(1, -55, 0, 12); SwitchBg.Size = UDim2.new(0, 44, 0, 24)
+    SwitchBg.AutoButtonColor = false; SwitchBg.Text = ""
+    local SwitchCorner = Instance.new("UICorner"); SwitchCorner.CornerRadius = UDim.new(1, 0); SwitchCorner.Parent = SwitchBg
+
+    local Indicator = Instance.new("Frame")
+    Indicator.Parent = SwitchBg; Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Indicator.Position = defaultState and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+    Indicator.Size = UDim2.new(0, 18, 0, 18)
+    local IndCorner = Instance.new("UICorner"); IndCorner.CornerRadius = UDim.new(1, 0); IndCorner.Parent = Indicator
+
+    local state = defaultState
+    local currentKey = nil
+    local function trigger()
+        state = not state
+        TweenService:Create(SwitchBg, TweenInfo.new(0.2), {BackgroundColor3 = state and THEME.Accent or THEME.ToggleOff}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)}):Play()
+        pcall(callback, state)
+    end
+    SwitchBg.MouseButton1Click:Connect(trigger)
+
+    local binding = false; local bindConnection = nil
+    KeybindBtn.MouseButton1Click:Connect(function()
+        if binding then return end
+        binding = true; KeybindBtn.Text = "( ... )"
+        if bindConnection then bindConnection:Disconnect() end
+        bindConnection = UserInputService.InputBegan:Connect(function(input)
+            if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                if input.KeyCode == Enum.KeyCode.Escape then currentKey = nil; KeybindBtn.Text = "( ... )"
+                else currentKey = input.KeyCode; KeybindBtn.Text = "(" .. input.KeyCode.Name .. ")" end
+                binding = false; if bindConnection then bindConnection:Disconnect() end
+            end
+        end)
+    end)
+
+    local kbEntry = {Key = nil, Callback = function() trigger() end}
+    table.insert(Keybinds, kbEntry)
+    task.spawn(function()
+        local lastKey = nil
+        while Frame and Frame.Parent do
+            if currentKey ~= lastKey then lastKey = currentKey; kbEntry.Key = currentKey end
+            task.wait(0.15)
+        end
+        kbEntry.Key = nil
+    end)
+    return Frame
+end
+
+local function AddToggle(parent, title, hint, defaultState, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = parent; Frame.BackgroundColor3 = THEME.Card; Frame.BorderSizePixel = 0; Frame.Size = UDim2.new(1, -10, 0, hint and 62 or 48)
+    RegisterElement(Frame, "Card")
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Frame
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Frame; Stroke.Color = THEME.Stroke; Stroke.Transparency = 0.4
+
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Frame; Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 15, 0, 0); Label.Size = UDim2.new(0.5, 0, 1, 0)
+    Label.Font = Enum.Font.GothamMedium; Label.Text = title; Label.TextColor3 = THEME.Text; Label.TextSize = 13
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    RegisterElement(Label, "Text")
+
+    if hint then
+        local h = Instance.new("TextLabel")
+        h.Parent = Frame; h.BackgroundTransparency = 1
+        h.Position = UDim2.new(0, 15, 0, 40); h.Size = UDim2.new(1, -30, 0, 14)
+        h.Font = Enum.Font.Gotham; h.Text = hint; h.TextColor3 = THEME.SubText; h.TextSize = 10
+        h.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    local SwitchBg = Instance.new("TextButton")
+    SwitchBg.Parent = Frame; SwitchBg.BackgroundColor3 = defaultState and THEME.Accent or THEME.ToggleOff
+    SwitchBg.Position = UDim2.new(1, -60, 0, 12); SwitchBg.Size = UDim2.new(0, 44, 0, 24)
+    SwitchBg.AutoButtonColor = false; SwitchBg.Text = ""
+    local SwitchCorner = Instance.new("UICorner"); SwitchCorner.CornerRadius = UDim.new(1, 0); SwitchCorner.Parent = SwitchBg
+
+    local Indicator = Instance.new("Frame")
+    Indicator.Parent = SwitchBg; Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Indicator.Position = defaultState and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+    Indicator.Size = UDim2.new(0, 18, 0, 18)
+    local IndCorner = Instance.new("UICorner"); IndCorner.CornerRadius = UDim.new(1, 0); IndCorner.Parent = Indicator
+
+    local state = defaultState
+    local function trigger()
+        state = not state
+        TweenService:Create(SwitchBg, TweenInfo.new(0.2), {BackgroundColor3 = state and THEME.Accent or THEME.ToggleOff}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)}):Play()
+        pcall(callback, state)
+    end
+    SwitchBg.MouseButton1Click:Connect(trigger)
+end
+
+local function AddSlider(parent, title, hint, min, max, default, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = parent; Frame.BackgroundColor3 = THEME.Card; Frame.BorderSizePixel = 0; Frame.Size = UDim2.new(1, -10, 0, hint and 72 or 58)
+    RegisterElement(Frame, "Card")
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Frame
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Frame; Stroke.Color = THEME.Stroke; Stroke.Transparency = 0.4
+
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Frame; Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 15, 0, 6); Label.Size = UDim2.new(1, -30, 0, 20)
+    Label.Font = Enum.Font.GothamMedium; Label.Text = title .. ": " .. tostring(default)
+    Label.TextColor3 = THEME.Text; Label.TextSize = 13; Label.TextXAlignment = Enum.TextXAlignment.Left
+    RegisterElement(Label, "Text")
+
+    local SliderBar = Instance.new("TextButton")
+    SliderBar.Parent = Frame; SliderBar.BackgroundColor3 = THEME.ToggleOff; SliderBar.BorderSizePixel = 0
+    SliderBar.Position = UDim2.new(0, 15, 0, 36); SliderBar.Size = UDim2.new(1, -30, 0, 8)
+    SliderBar.AutoButtonColor = false; SliderBar.Text = ""
+    local BarCorner = Instance.new("UICorner"); BarCorner.CornerRadius = UDim.new(1, 0); BarCorner.Parent = SliderBar
+
+    local Fill = Instance.new("Frame")
+    Fill.Parent = SliderBar; Fill.BackgroundColor3 = THEME.Accent; Fill.BorderSizePixel = 0
+    Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    local FillCorner = Instance.new("UICorner"); FillCorner.CornerRadius = UDim.new(1, 0); FillCorner.Parent = Fill
+
+    if hint then
+        local h = Instance.new("TextLabel")
+        h.Parent = Frame; h.BackgroundTransparency = 1
+        h.Position = UDim2.new(0, 15, 0, 50); h.Size = UDim2.new(1, -30, 0, 14)
+        h.Font = Enum.Font.Gotham; h.Text = hint; h.TextColor3 = THEME.SubText; h.TextSize = 10
+        h.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    local dragging = false
+    local function updateFromX(mouseX)
+        local barPos = SliderBar.AbsolutePosition.X
+        local barSize = SliderBar.AbsoluteSize.X
+        if barSize <= 0 then return end
+        local percent = math.clamp((mouseX - barPos) / barSize, 0, 1)
+        local value = math.floor(min + (max - min) * percent + 0.5)
+        Fill.Size = UDim2.new(percent, 0, 1, 0)
+        Label.Text = title .. ": " .. tostring(value)
+        pcall(callback, value)
+    end
+    SliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; updateFromX(input.Position.X)
+        end
+    end)
+    SliderBar.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateFromX(input.Position.X)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+end
+
+local function AddButton(parent, title, hint, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = parent; Frame.BackgroundColor3 = THEME.Card; Frame.BorderSizePixel = 0
+    Frame.Size = UDim2.new(1, -10, 0, hint and 58 or 42)
+    RegisterElement(Frame, "Card")
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Frame
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Frame; Stroke.Color = THEME.Stroke; Stroke.Transparency = 0.4
+
+    local Btn = Instance.new("TextButton")
+    Btn.Parent = Frame; Btn.BackgroundTransparency = 1; Btn.BorderSizePixel = 0
+    Btn.Position = UDim2.new(0, 0, 0, 0); Btn.Size = UDim2.new(1, 0, 0, 42)
+    Btn.Font = Enum.Font.GothamBold; Btn.Text = title; Btn.TextColor3 = THEME.Text
+    Btn.TextSize = 13; Btn.AutoButtonColor = false
+
+    if hint then
+        local h = Instance.new("TextLabel")
+        h.Parent = Frame; h.BackgroundTransparency = 1
+        h.Position = UDim2.new(0, 15, 0, 42); h.Size = UDim2.new(1, -30, 0, 14)
+        h.Font = Enum.Font.Gotham; h.Text = hint; h.TextColor3 = THEME.SubText; h.TextSize = 10
+        h.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    Btn.MouseButton1Click:Connect(function() pcall(callback) end)
+    return Frame
+end
+
+local function AddInput(parent, placeholder, buttonText, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = parent; Frame.BackgroundColor3 = THEME.Card; Frame.BorderSizePixel = 0
+    Frame.Size = UDim2.new(1, -10, 0, 48)
+    RegisterElement(Frame, "Card")
+    local Corner = Instance.new("UICorner"); Corner.CornerRadius = UDim.new(0, 8); Corner.Parent = Frame
+    local Stroke = Instance.new("UIStroke"); Stroke.Parent = Frame; Stroke.Color = THEME.Stroke; Stroke.Transparency = 0.4
+
+    local Box = Instance.new("TextBox")
+    Box.Parent = Frame; Box.BackgroundColor3 = THEME.ToggleOff; Box.BorderSizePixel = 0
+    Box.Position = UDim2.new(0, 10, 0.5, -14); Box.Size = UDim2.new(0.55, 0, 28, 0)
+    Box.Font = Enum.Font.GothamMedium; Box.PlaceholderText = placeholder
+    Box.Text = ""; Box.TextColor3 = THEME.Text; Box.PlaceholderColor3 = THEME.SubText
+    Box.TextSize = 12; Box.ClearTextOnFocus = false
+    local BCorner = Instance.new("UICorner"); BCorner.CornerRadius = UDim.new(0, 6); BCorner.Parent = Box
+
+    local Btn = Instance.new("TextButton")
+    Btn.Parent = Frame; Btn.BackgroundColor3 = THEME.Accent; Btn.BorderSizePixel = 0
+    Btn.Position = UDim2.new(0.58, 10, 0.5, -14); Btn.Size = UDim2.new(0.4, -20, 28, 0)
+    Btn.Font = Enum.Font.GothamBold; Btn.Text = buttonText; Btn.TextColor3 = Color3.fromRGB(255,255,255)
+    Btn.TextSize = 12; Btn.AutoButtonColor = false
+    local BC2 = Instance.new("UICorner"); BC2.CornerRadius = UDim.new(0, 6); BC2.Parent = Btn
+
+    Btn.MouseButton1Click:Connect(function() pcall(callback, Box.Text) end)
+    return Frame
+end
+
+local function AddSection(parent, text)
+    local L = Instance.new("TextLabel")
+    L.Parent = parent; L.BackgroundColor3 = THEME.Card; L.BackgroundTransparency = 0.5
+    L.BorderSizePixel = 0; L.Size = UDim2.new(1, -10, 0, 26)
+    L.Font = Enum.Font.GothamBold; L.Text = "  " .. text
+    L.TextColor3 = THEME.Accent; L.TextSize = 12; L.TextXAlignment = Enum.TextXAlignment.Left
+    RegisterElement(L, "Card")
+    local C = Instance.new("UICorner"); C.CornerRadius = UDim.new(0, 6); C.Parent = L
+    return L
+end
+
+local function AddLabel(parent, text)
+    local L = Instance.new("TextLabel")
+    L.Parent = parent; L.BackgroundColor3 = THEME.Card; L.BackgroundTransparency = 0.5
+    L.BorderSizePixel = 0; L.Size = UDim2.new(1, -10, 0, 30)
+    L.Font = Enum.Font.GothamSemibold; L.Text = text; L.TextColor3 = THEME.Accent; L.TextSize = 12
+    RegisterElement(L, "Card")
+    local C = Instance.new("UICorner"); C.CornerRadius = UDim.new(0, 6); C.Parent = L
+    return L
+end
+
+-- ============================================================
+-- HELPERS
+-- ============================================================
+local function Notify(text)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = NOTIF_TITLE,
+            Text = text or "",
+            Duration = 3,
+        })
+    end)
+end
+
+local function IsLocalMurderer()
+    local char = LocalPlayer.Character
+    if not char then return false end
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack and backpack:FindFirstChild("Knife") then return true end
+    if char:FindFirstChild("Knife") then return true end
+    return false
+end
+
+local function IsLocalSheriff()
+    local char = LocalPlayer.Character
+    if not char then return false end
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack and (backpack:FindFirstChild("Revolver") or backpack:FindFirstChild("Gun")) then return true end
+    if char:FindFirstChild("Revolver") or char:FindFirstChild("Gun") then return true end
+    return false
+end
+
+local function GetMurdererPlayer()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local hasKnife = false
+            local bp = p:FindFirstChild("Backpack")
+            if bp and bp:FindFirstChild("Knife") then hasKnife = true end
+            if p.Character:FindFirstChild("Knife") then hasKnife = true end
+            if hasKnife and p.Character:FindFirstChild("HumanoidRootPart") then
+                local h = p.Character:FindFirstChildOfClass("Humanoid")
+                if h and h.Health > 0 then return p end
+            end
+        end
+    end
+    return nil
+end
+
+local function GetClosestPlayer()
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil end
+    local closest, closestDist = nil, math.huge
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local h = plr.Character:FindFirstChildOfClass("Humanoid")
+            local r = plr.Character:FindFirstChild("HumanoidRootPart")
+            if h and r and h.Health > 0 then
+                local d = (r.Position - myRoot.Position).Magnitude
+                if d < closestDist then closestDist = d; closest = plr end
+            end
+        end
+    end
+    return closest
+end
+
+local function FindPlayerByName(name)
+    if not name or name == "" then return nil end
+    name = name:lower()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            if plr.Name:lower():sub(1, #name) == name or plr.DisplayName:lower():sub(1, #name) == name then
+                return plr
+            end
+        end
+    end
+    return nil
+end
+
+local function GetMurdererDistance()
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local mp = GetMurdererPlayer()
+    local mRoot = mp and mp.Character and mp.Character:FindFirstChild("HumanoidRootPart")
+    if myRoot and mRoot then return (mRoot.Position - myRoot.Position).Magnitude end
+    return nil
+end
+
+local function EquipToolByName(name)
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return nil end
+    local bp = LocalPlayer:FindFirstChild("Backpack")
+    if not bp then return nil end
+    local tool = bp:FindFirstChild(name)
+    if tool then pcall(function() hum:EquipTool(tool) end) return tool end
+    return char:FindFirstChild(name)
+end
+
+local function EnsureGunEquipped()
+    local c = LocalPlayer.Character
+    if not c then return nil end
+    local g = c:FindFirstChild("Revolver") or c:FindFirstChild("Gun")
+    if g then return g end
+    EquipToolByName("Revolver"); EquipToolByName("Gun")
+    return c:FindFirstChild("Revolver") or c:FindFirstChild("Gun")
+end
+
+-- ============================================================
+-- FLING
+-- ============================================================
+local function FlingPlayer(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then
+        Notify("There was no target to fling.")
+        return
+    end
+    local targetChar = targetPlayer.Character
+    local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
+    local targetRoot = targetHum and targetHum.RootPart
+    local targetHead = targetChar:FindFirstChild("Head")
+    local targetAcc = targetChar:FindFirstChildOfClass("Accessory")
+    local targetHandle = targetAcc and targetAcc:FindFirstChild("Handle")
+
+    local myChar = LocalPlayer.Character
+    local myHum = myChar and myChar:FindFirstChildOfClass("Humanoid")
+    local myRoot = myHum and myHum.RootPart
+    if not myRoot or not myHum then Notify("Your character is not ready.") return end
+
+    local oldPos = myRoot.CFrame
+    local origFPDH = workspace.FallenPartsDestroyHeight
+
+    local function FPos(part, pos, ang)
+        myRoot.CFrame = CFrame.new(part.Position) * pos * ang
+        myChar:PivotTo(CFrame.new(part.Position) * pos * ang)
+        myRoot.Velocity = Vector3.new(9e7, 9e8, 9e7)
+        myRoot.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
+    end
+
+    local function SFBasePart(basePart)
+        local t0 = tick(); local angle = 0
+        repeat
+            if myRoot and myHum then
+                if basePart.Velocity.Magnitude < 50 then
+                    angle = angle + 100
+                    FPos(basePart, CFrame.new(0, 1.5, 0) + myHum.MoveDirection * basePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(angle), 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(0, -1.5, 0) + myHum.MoveDirection * basePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(angle), 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(2.25, 1.5, -2.25) + myHum.MoveDirection * basePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(angle), 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(-2.25, -1.5, 2.25) + myHum.MoveDirection * basePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(angle), 0, 0)); task.wait()
+                else
+                    FPos(basePart, CFrame.new(0, 1.5, myHum.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(0, -1.5, -myHum.WalkSpeed), CFrame.Angles(0, 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(0, 1.5, targetRoot.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0)); task.wait()
+                    FPos(basePart, CFrame.new(0, -1.5, -targetRoot.Velocity.Magnitude / 1.25), CFrame.Angles(0, 0, 0)); task.wait()
+                end
+            else break end
+        until basePart.Velocity.Magnitude > 500 or basePart.Parent ~= targetChar
+           or targetPlayer.Parent ~= Players or targetPlayer.Character ~= targetChar
+           or (targetHum and targetHum.Sit) or (myHum and myHum.Health <= 0)
+           or tick() > t0 + 2
+    end
+
+    workspace.FallenPartsDestroyHeight = 0/0
+    local bv = Instance.new("BodyVelocity")
+    bv.Name = "NexonFlingVel"; bv.Parent = myRoot
+    bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
+    bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
+    if targetRoot and targetHead then
+        SFBasePart((targetRoot.CFrame.p - targetHead.CFrame.p).Magnitude > 5 and targetHead or targetRoot)
+    elseif targetRoot then SFBasePart(targetRoot)
+    elseif targetHead then SFBasePart(targetHead)
+    elseif targetHandle then SFBasePart(targetHandle)
+    else Notify("I could not find a part to fling.")
+    end
+
+    bv:Destroy()
+    myHum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+
+    repeat
+        myRoot.CFrame = oldPos * CFrame.new(0, 0.5, 0)
+        myChar:PivotTo(oldPos * CFrame.new(0, 0.5, 0))
+        myHum:ChangeState(Enum.HumanoidStateType.GettingUp)
+        for _, x in pairs(myChar:GetChildren()) do
+            if x:IsA("BasePart") then x.Velocity = Vector3.zero; x.RotVelocity = Vector3.zero end
+        end
+        task.wait()
+    until (myRoot.Position - oldPos.p).Magnitude < 25
+
+    workspace.FallenPartsDestroyHeight = origFPDH
+    Notify("Fling complete — thank you for using Nexon Hub.")
+end
+
+-- ============================================================
+-- FLY
+-- ============================================================
+local FlyUtil = {}
+do
+    local flying = false
+    local maxSpeed = 50
+    local accel = 2
+    local speed = 0
+    local dir = Vector3.new()
+    local gyro, vel, hbConn
+
+    local function stopInternal()
+        if hbConn then hbConn:Disconnect(); hbConn = nil end
+        if gyro then gyro:Destroy(); gyro = nil end
+        if vel then vel:Destroy(); vel = nil end
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.PlatformStand = false end
+        end
+        flying = false; speed = 0
+    end
+
+    local function step()
+        local char = LocalPlayer.Character
+        if not flying or not char then stopInternal() return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+        local cam = workspace.CurrentCamera
+        if not hum or hum.Health <= 0 or not root or not cam then stopInternal() return end
+
+        local moveDir = hum.MoveDirection
+        if moveDir.Magnitude > 0.01 then
+            speed = math.min(maxSpeed, speed + accel)
+            dir = moveDir.Unit
+        else
+            speed = math.max(0, speed - accel)
+        end
+
+        local flat = Vector3.new(dir.X, 0, dir.Z)
+        local horizontal = Vector3.zero
+        if flat.Magnitude > 0 then horizontal = flat.Unit * speed end
+
+        local camLook = cam.CFrame.LookVector.Unit
+        local horizLook = Vector3.new(camLook.X, 0, camLook.Z)
+        if horizLook.Magnitude > 0 then horizLook = horizLook.Unit end
+
+        local dot = dir:Dot(camLook)
+        local sign = dot < 0 and -1 or 1
+        local horizDot = math.abs(dir:Dot(horizLook))
+        local vy = camLook.Y * sign * horizDot
+        local vertical = vy * speed
+
+        vel.Velocity = Vector3.new(horizontal.X, vertical, horizontal.Z)
+        local roll = -math.rad(dot * (speed / maxSpeed) * 30)
+        gyro.CFrame = CFrame.new(root.Position, root.Position + camLook) * CFrame.Angles(roll, 0, 0)
+    end
+
+    function FlyUtil:Start()
+        if flying then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not hum or not root then return end
+        flying = true
+        gyro = Instance.new("BodyGyro"); gyro.P = 100000
+        gyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        gyro.CFrame = root.CFrame; gyro.Parent = root
+        vel = Instance.new("BodyVelocity"); vel.P = 10000
+        vel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        vel.Velocity = Vector3.zero; vel.Parent = root
+        hum.PlatformStand = true
+        hbConn = RunService.Heartbeat:Connect(step)
+    end
+    function FlyUtil:Stop() stopInternal() end
+    function FlyUtil:SetMaxSpeed(n) if type(n) == "number" and n >= 0 then maxSpeed = n end end
+    function FlyUtil:GetMaxSpeed() return maxSpeed end
+    function FlyUtil:IsFlying() return flying end
+
+    LocalPlayer.CharacterRemoving:Connect(function()
+        if flying then stopInternal() end
+    end)
+end
+
+-- ============================================================
+-- FLY MOBILE BUTTONS
+-- ============================================================
+local FlyGui = Instance.new("ScreenGui")
+FlyGui.Name = "NexonHubFly"; FlyGui.Parent = GuiParent
+FlyGui.ResetOnSpawn = false; FlyGui.IgnoreGuiInset = true
+FlyGui.Enabled = false; FlyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local UpBtn = Instance.new("TextButton")
+UpBtn.Parent = FlyGui; UpBtn.Size = UDim2.new(0, 60, 0, 60); UpBtn.Position = UDim2.new(1, -80, 0.5, -140)
+UpBtn.BackgroundColor3 = THEME.Accent; UpBtn.BackgroundTransparency = 0.15
+UpBtn.Text = "▲"; UpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+UpBtn.Font = Enum.Font.GothamBold; UpBtn.TextSize = 26; UpBtn.AutoButtonColor = false
+local UpCorner = Instance.new("UICorner"); UpCorner.CornerRadius = UDim.new(1, 0); UpCorner.Parent = UpBtn
+
+local DownBtn = Instance.new("TextButton")
+DownBtn.Parent = FlyGui; DownBtn.Size = UDim2.new(0, 60, 0, 60); DownBtn.Position = UDim2.new(1, -80, 0.5, 10)
+DownBtn.BackgroundColor3 = THEME.Accent; DownBtn.BackgroundTransparency = 0.15
+DownBtn.Text = "▼"; DownBtn.TextColor3 = Color3.fromRGB(255,255,255)
+DownBtn.Font = Enum.Font.GothamBold; DownBtn.TextSize = 26; DownBtn.AutoButtonColor = false
+local DownCorner = Instance.new("UICorner"); DownCorner.CornerRadius = UDim.new(1, 0); DownCorner.Parent = DownBtn
+
+local flyUpHeld, flyDownHeld = false, false
+local function bindHold(b, fn)
+    b.MouseButton1Down:Connect(function() fn(true) end)
+    b.MouseButton1Up:Connect(function() fn(false) end)
+    b.MouseLeave:Connect(function() fn(false) end)
+    b.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.Touch then fn(true) end end)
+    b.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.Touch then fn(false) end end)
+end
+bindHold(UpBtn, function(v) flyUpHeld = v end)
+bindHold(DownBtn, function(v) flyDownHeld = v end)
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if FlyUtil:IsFlying() then
+            local char = LocalPlayer.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if hum and root then
+                local v = Vector3.zero
+                if flyUpHeld then v = v + Vector3.new(0, 1, 0) end
+                if flyDownHeld then v = v - Vector3.new(0, 1, 0) end
+                if v.Magnitude > 0 then
+                    local bv = root:FindFirstChild("NexonFlyManual")
+                    if not bv then
+                        bv = Instance.new("BodyVelocity")
+                        bv.Name = "NexonFlyManual"
+                        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                        bv.Parent = root
+                    end
+                    bv.Velocity = v * FlyUtil:GetMaxSpeed()
+                else
+                    local bv = root:FindFirstChild("NexonFlyManual")
+                    if bv then bv:Destroy() end
+                end
+            end
+        end
+    end
+end)
+
+-- ============================================================
+-- ANTI-FLING
+-- ============================================================
+local AntiFling = false
+local AntiFlingLastPos = Vector3.zero
+local AntiFlingNeut, AntiFlingDetect = nil, nil
+local DetectedFlingers = {}
+
+local function StartAntiFling()
+    AntiFlingNeut = RunService.Heartbeat:Connect(function()
+        local char = LocalPlayer.Character
+        local root = char and char.PrimaryPart
+        if not root then return end
+        if root.AssemblyLinearVelocity.Magnitude > 250 or root.AssemblyAngularVelocity.Magnitude > 250 then
+            Notify("You were flung — neutralizing velocity. Please hold on.")
+            root.AssemblyLinearVelocity = Vector3.zero
+            root.AssemblyAngularVelocity = Vector3.zero
+            if AntiFlingLastPos ~= Vector3.zero then root.CFrame = CFrame.new(AntiFlingLastPos) end
+        else
+            AntiFlingLastPos = root.Position
+        end
+    end)
+    AntiFlingDetect = RunService.Heartbeat:Connect(function()
+        for _, pl in ipairs(Players:GetPlayers()) do
+            if pl.Character and pl.Character.PrimaryPart and pl.Character:IsDescendantOf(Workspace) then
+                local pp = pl.Character.PrimaryPart
+                if pp.AssemblyAngularVelocity.Magnitude > 50 or pp.AssemblyLinearVelocity.Magnitude > 100 then
+                    if not DetectedFlingers[pl.Name] then
+                        DetectedFlingers[pl.Name] = true
+                        Notify("A potential flinger was detected: " .. pl.Name)
+                    end
+                    for _, part in ipairs(pl.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                            part.AssemblyAngularVelocity = Vector3.zero
+                            part.AssemblyLinearVelocity = Vector3.zero
+                            pcall(function() part.CustomPhysicalProperties = PhysicalProperties.new(0,0,0) end)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function StopAntiFling()
+    if AntiFlingNeut then AntiFlingNeut:Disconnect(); AntiFlingNeut = nil end
+    if AntiFlingDetect then AntiFlingDetect:Disconnect(); AntiFlingDetect = nil end
+    DetectedFlingers = {}
+end
+
+-- ============================================================
+-- WALKSPEED / FOV LOOP
+-- ============================================================
+local LoopWSFOV = false
+local WSVal = 16
+local FOVVal = 70
+RunService.RenderStepped:Connect(function()
+    if LoopWSFOV then
+        Workspace.CurrentCamera.FieldOfView = FOVVal
+        local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if h then h.WalkSpeed = WSVal end
+    end
+end)
+
+-- ============================================================
+-- CTRL+CLICK TELEPORT
+-- ============================================================
+local CtrlClickTP = false
+local function getMouseWorldPos()
+    local m = LocalPlayer:GetMouse()
+    if not m then return nil end
+    local ray = Workspace.CurrentCamera:ScreenPointToRay(m.X, m.Y)
+    local params = RaycastParams.new()
+    params.FilterDescendantsInstances = {LocalPlayer.Character}
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+    return result and result.Position or nil
+end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if CtrlClickTP and input.UserInputType == Enum.UserInputType.MouseButton1 and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        local pos = getMouseWorldPos()
+        if pos then
+            local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root then root.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0)); Notify("Teleported successfully.") end
+        end
+    end
+end)
+
+-- ============================================================
+-- NOCLIP / RECLIP
+-- ============================================================
+local Noclip = false
+RunService.Stepped:Connect(function()
+    if Noclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+local Reclip = false
+RunService.Stepped:Connect(function()
+    if Reclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") and not part.Name:find("HumanoidRootPart") then
+                if not part.CanCollide then part.CanCollide = true end
+            end
+        end
+    end
+end)
+
+-- ============================================================
+-- PLAYER ESP
+-- ============================================================
+local PlayerESP = false
+local PlayerESPData = {}
+
+local function CleanupESP(p)
+    if p.Character then
+        local h = p.Character:FindFirstChild("NexonPlayerEsp"); if h then h:Destroy() end
+        local n = p.Character:FindFirstChild("NexonNameEsp"); if n then n:Destroy() end
+    end
+    PlayerESPData[p] = nil
+end
+
+local function UpdatePlayerESP()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local c = p.Character
+            local ex = PlayerESPData[p]
+            if ex and ex.Parent ~= c then ex:Destroy(); PlayerESPData[p] = nil; ex = nil end
+            if PlayerESP then
+                if not ex then
+                    local hl = Instance.new("Highlight")
+                    hl.Name = "NexonPlayerEsp"; hl.Parent = c; hl.Adornee = c
+                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    hl.FillColor = THEME.Accent; hl.OutlineColor = Color3.fromRGB(255,255,255)
+                    hl.FillTransparency = 0.5; hl.OutlineTransparency = 0.1
+                    PlayerESPData[p] = hl
+                end
+                if not c:FindFirstChild("NexonNameEsp") then
+                    local bb = Instance.new("BillboardGui")
+                    bb.Name = "NexonNameEsp"; bb.Parent = c
+                    bb.Adornee = c:FindFirstChild("Head") or c:FindFirstChild("HumanoidRootPart")
+                    bb.Size = UDim2.new(0, 200, 0, 50); bb.StudsOffset = Vector3.new(0, 3, 0); bb.AlwaysOnTop = true
+                    local nl = Instance.new("TextLabel")
+                    nl.Parent = bb; nl.BackgroundTransparency = 1; nl.Size = UDim2.new(1, 0, 1, 0)
+                    nl.Font = Enum.Font.GothamBold; nl.Text = p.Name
+                    nl.TextColor3 = Color3.fromRGB(255,255,255); nl.TextStrokeTransparency = 0
+                    nl.TextStrokeColor3 = Color3.fromRGB(0,0,0); nl.TextSize = 14
+                end
+            else CleanupESP(p) end
+        elseif PlayerESPData[p] then CleanupESP(p) end
+    end
+end
+
+RunService.RenderStepped:Connect(function() if PlayerESP then UpdatePlayerESP() end end)
+Players.PlayerRemoving:Connect(CleanupESP)
+
+-- ============================================================
+-- ROLE ESP
+-- ============================================================
+local RoleMurderer, RoleSheriff, RoleInnocent = false, false, false
+RunService.RenderStepped:Connect(function()
+    if not (RoleMurderer or RoleSheriff or RoleInnocent) then return end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local c = p.Character
+            local hl = c:FindFirstChild("NexonRoleEsp")
+            local hasK, hasG = false, false
+            local bp = p:FindFirstChild("Backpack")
+            if bp then for _, i in pairs(bp:GetChildren()) do
+                if i.Name == "Knife" then hasK = true end
+                if i.Name == "Revolver" or i.Name == "Gun" then hasG = true end
+            end end
+            for _, i in pairs(c:GetChildren()) do
+                if i.Name == "Knife" then hasK = true end
+                if i.Name == "Revolver" or i.Name == "Gun" then hasG = true end
+            end
+            local show, col = false, Color3.fromRGB(0,255,0)
+            if hasK and RoleMurderer then show = true; col = Color3.fromRGB(220,20,60)
+            elseif hasG and RoleSheriff then show = true; col = Color3.fromRGB(30,144,255)
+            elseif not hasK and not hasG and RoleInnocent then show = true; col = Color3.fromRGB(0,255,100) end
+            if show then
+                if not hl then hl = Instance.new("Highlight")
+                    hl.Name = "NexonRoleEsp"; hl.Parent = c; hl.Adornee = c
+                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                end
+                hl.FillColor = col; hl.OutlineColor = Color3.fromRGB(255,255,255)
+                hl.FillTransparency = 0.4; hl.OutlineTransparency = 0.1
+            elseif hl then hl:Destroy() end
+        end
+    end
+end)
+
+-- ============================================================
+-- KILL FARM
+-- ============================================================
+local KillFarm = false
+task.spawn(function()
+    while task.wait(0.15) do
+        if KillFarm and IsLocalMurderer() then
+            pcall(function()
+                local c = LocalPlayer.Character
+                local r = c and c:FindFirstChild("HumanoidRootPart")
+                if not r then return end
+                EquipToolByName("Knife")
+                for _, p in pairs(Players:GetPlayers()) do
+                    if not KillFarm then break end
+                    if p ~= LocalPlayer and p.Character then
+                        local h = p.Character:FindFirstChildOfClass("Humanoid")
+                        local pr = p.Character:FindFirstChild("HumanoidRootPart")
+                        if h and pr and h.Health > 0 then
+                            r.CFrame = CFrame.new(pr.Position); task.wait(0.05)
+                            r.CFrame = CFrame.new(r.Position, pr.Position)
+                            local k = c:FindFirstChild("Knife"); if k then pcall(function() k:Activate() end) end
+                            task.wait(0.1)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- ============================================================
+-- MURDERER AUTO SHOOT / CURSOR
+-- ============================================================
+local CursorGui = Instance.new("ScreenGui")
+CursorGui.Name = "NexonCursor"; CursorGui.Parent = GuiParent
+CursorGui.ResetOnSpawn = false; CursorGui.IgnoreGuiInset = true
+CursorGui.Enabled = false; CursorGui.DisplayOrder = 999
+
+local Cursor = Instance.new("ImageLabel")
+Cursor.Parent = CursorGui; Cursor.Size = UDim2.new(0, 40, 0, 40)
+Cursor.BackgroundTransparency = 1; Cursor.Image = "rbxassetid://6913441101"
+Cursor.ImageColor3 = THEME.Accent; Cursor.ZIndex = 999
+
+local function SetCursor(on)
+    CursorGui.Enabled = on
+    pcall(function() UserInputService.MouseIconEnabled = not on end)
+end
+
+UserInputService.InputChanged:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+        Cursor.Position = UDim2.new(0, i.Position.X - 20, 0, i.Position.Y - 20)
+    end
+end)
+
+local MurderAutoShoot = false
+task.spawn(function()
+    while task.wait(0.1) do
+        if MurderAutoShoot then pcall(function()
+            if not IsLocalMurderer() then return end
+            local target = GetClosestPlayer()
+            if target then
+                local tr = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                if tr then Camera.CFrame = CFrame.new(Camera.CFrame.Position, tr.Position) end
+            end
+            local c = LocalPlayer.Character
+            local k = c and c:FindFirstChild("Knife")
+            if k then
+                local h = c:FindFirstChildOfClass("Humanoid")
+                if h then pcall(function() h:EquipTool(k) end) end
+                pcall(function() k:Activate() end)
+            end
+        end) end
+    end
+end)
+
+-- ============================================================
+-- KILL AURA
+-- ============================================================
+local KillAura = false
+local KillAuraRange = 20
+local KillAuraVision = false
+task.spawn(function()
+    while task.wait(0.1) do
+        if KillAura and IsLocalMurderer() then pcall(function()
+            local c = LocalPlayer.Character
+            local r = c and c:FindFirstChild("HumanoidRootPart")
+            if not r then return end
+            EquipToolByName("Knife")
+            for _, p in pairs(Players:GetPlayers()) do
+                if not KillAura then break end
+                if p ~= LocalPlayer and p.Character then
+                    local h = p.Character:FindFirstChildOfClass("Humanoid")
+                    local pr = p.Character:FindFirstChild("HumanoidRootPart")
+                    if h and pr and h.Health > 0 and (pr.Position - r.Position).Magnitude <= KillAuraRange then
+                        r.CFrame = CFrame.new(pr.Position); task.wait(0.02)
+                        r.CFrame = CFrame.new(r.Position, pr.Position)
+                        local k = c:FindFirstChild("Knife"); if k then pcall(function() k:Activate() end) end
+                        task.wait(0.06)
+                    end
+                end
+            end
+        end) end
+    end
+end)
+
+local auraVis = Instance.new("Part")
+auraVis.Name = "NexonKillAuraVis"; auraVis.Anchored = true; auraVis.CanCollide = false
+auraVis.CanQuery = false; auraVis.CanTouch = false; auraVis.Shape = Enum.PartType.Ball
+auraVis.Material = Enum.Material.ForceField; auraVis.Color = THEME.Accent
+auraVis.Transparency = 1; auraVis.Size = Vector3.new(1,1,1); auraVis.Parent = Workspace
+
+RunService.RenderStepped:Connect(function()
+    if KillAuraVision and LocalPlayer.Character then
+        local r = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if r then
+            auraVis.Size = Vector3.new(KillAuraRange * 2, KillAuraRange * 2, KillAuraRange * 2)
+            auraVis.CFrame = r.CFrame; auraVis.Transparency = 0.7
+        else auraVis.Transparency = 1 end
+    else auraVis.Transparency = 1 end
+end)
+
+-- ============================================================
+-- CAMP GUN
+-- ============================================================
+local CampGun = false
+local CampGunConn = nil
+
+local function GetGunDrop()
+    for _, o in pairs(Workspace:GetDescendants()) do
+        if o:IsA("BasePart") and (o.Name == "GunDrop" or o.Name == "RevolverDrop") then return o end
+    end
+    return nil
+end
+
+local function StopCampGun()
+    CampGun = false
+    if CampGunConn then CampGunConn:Disconnect(); CampGunConn = nil end
+end
+
+local function StartCampGun()
+    local drop = GetGunDrop()
+    if not drop then Notify("No gun drop was found on the map right now.") return false end
+    CampGun = true
+    if CampGunConn then CampGunConn:Disconnect() end
+    CampGunConn = RunService.Stepped:Connect(function()
+        if not CampGun then return end
+        local d = GetGunDrop()
+        if not d then Notify("The gun was picked up — camp has been released."); StopCampGun(); return end
+        local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not r then return end
+        local tp = d.Position + Vector3.new(0, 2, 0)
+        if (r.Position - tp).Magnitude > 0.5 then r.CFrame = CFrame.new(tp) end
+        r.CFrame = CFrame.new(r.Position, d.Position)
+    end)
+    return true
+end
+
+-- ============================================================
+-- SHERIFF AIM LOCK / AUTO SHOOT
+-- ============================================================
+local SherAimLock = false
+local SherAutoShoot = false
+local SherRange = 15
+
+RunService.RenderStepped:Connect(function()
+    if SherAimLock then pcall(function()
+        local mp = GetMurdererPlayer()
+        local mr = mp and mp.Character and mp.Character:FindFirstChild("HumanoidRootPart")
+        if mr then Camera.CFrame = CFrame.new(Camera.CFrame.Position, mr.Position) end
+    end) end
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if SherAutoShoot then pcall(function()
+            if not IsLocalSheriff() then return end
+            local d = GetMurdererDistance()
+            if not d or d > SherRange then return end
+            local mp = GetMurdererPlayer()
+            if not mp then return end
+            local mr = mp.Character:FindFirstChild("HumanoidRootPart")
+            if not mr then return end
+            local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if r then r.CFrame = CFrame.new(r.Position, mr.Position) end
+            local g = EnsureGunEquipped()
+            if g then pcall(function() g:Activate() end) end
+        end) end
+    end
+end)
+
+-- ============================================================
+-- AUTO GUN GRAB
+-- ============================================================
+local AutoGunGrab = false
+task.spawn(function()
+    while task.wait(0.3) do
+        if AutoGunGrab then pcall(function()
+            local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if not r then return end
+            local function tp(o)
+                if o:IsA("BasePart") and (o.Name=="GunDrop" or o.Name=="RevolverDrop") then o.CFrame = r.CFrame
+                elseif o:IsA("Model") then
+                    for _,p in pairs(o:GetDescendants()) do
+                        if p:IsA("BasePart") and (p.Name=="GunDrop" or p.Name=="RevolverDrop") then p.CFrame = r.CFrame end
+                    end
+                end
+            end
+            for _,o in pairs(Workspace:GetDescendants()) do
+                if o.Name == "GunDrop" or o.Name == "RevolverDrop" then tp(o) end
+            end
+        end) end
+    end
+end)
+
+-- ============================================================
+-- COIN FARM
+-- ============================================================
+local CoinFarm = false
+local CoinWasNoclip = false
+
+local function IsCoin(o)
+    if not o:IsA("BasePart") then return false end
+    local n = o.Name
+    if n == "Coin" or n == "CoinVisual" or n == "CoinPart" or n == "CoinMesh" then return true end
+    local p = o.Parent
+    if p and (p.Name == "Coin" or p.Name == "CoinContainer" or p.Name == "Coins") then return true end
+    return false
+end
+
+local function SmoothMove(root, target)
+    local start = root.CFrame
+    for i = 1, 4 do
+        if not CoinFarm then return end
+        root.CFrame = start:Lerp(target, i / 4)
+        task.wait(0.05)
+    end
+end
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if CoinFarm then pcall(function()
+            local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if not r then return end
+            local coins = {}
+            for _, o in pairs(Workspace:GetDescendants()) do
+                if IsCoin(o) then table.insert(coins, o) end
+            end
+            for _, coin in pairs(coins) do
+                if not CoinFarm then break end
+                if not coin.Parent then continue end
+                local target = CFrame.new(coin.Position + Vector3.new(0, 2, 0))
+                if (coin.Position - r.Position).Magnitude > 200 then
+                    local mid = r.Position + (coin.Position - r.Position) * 0.5
+                    r.CFrame = CFrame.new(mid + Vector3.new(0, 5, 0)); task.wait(0.3)
+                    r.CFrame = target; task.wait(0.3)
+                else
+                    SmoothMove(r, target)
+                end
+                task.wait(0.15)
+            end
+        end) end
+    end
+end)
+
+-- ============================================================
+-- MAP TELEPORT
+-- ============================================================
+local KNOWN_MAPS = {
+    "House","House2","Beach House","BeachHouse","Mansion","Mansion2","Office",
+    "Research","Laboratory","Lab","Cabin","Farm","Ruins","Snow","Snowy","Space",
+    "Ship","Yacht","Cruise","Temple","Mineshaft","Mine","Museum","Factory",
+    "Asylum","Barn","Volcano","Desert","Villa","Bank","Hotel","School","Prison",
+    "Forest","Jungle","Island","Castle"
+}
+
+local function IsMapObj(o)
+    if not (o:IsA("Folder") or o:IsA("Model")) then return false end
+    local n = o.Name:lower()
+    local bad = {gameworld=true,lobby=true,players=true,clientparts=true,camera=true,chat=true,terrain=true,effects=true,workspace_lights=true}
+    return not bad[n]
+end
+
+local function GetRoundMap()
+    for _, o in pairs(Workspace:GetChildren()) do
+        if IsMapObj(o) then
+            local n = o.Name:lower()
+            for _, k in pairs(KNOWN_MAPS) do
+                if n:find(k:lower(),1,true) then
+                    local sp = o:FindFirstChild("Spawn",true) or o:FindFirstChild("SpawnLocation",true)
+                    if sp and sp:IsA("BasePart") then return o end
+                end
+            end
+        end
+    end
+    local best, bestCount = nil, 0
+    for _, o in pairs(Workspace:GetChildren()) do
+        if IsMapObj(o) then
+            local sp = o:FindFirstChild("Spawn",true) or o:FindFirstChild("SpawnLocation",true)
+            if sp and sp:IsA("BasePart") then
+                local c = 0; for _ in pairs(o:GetDescendants()) do c = c + 1 end
+                if c > bestCount then bestCount = c; best = o end
+            end
+        end
+    end
+    return best
+end
+
+local function TeleportToMap()
+    local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not r then Notify("Your character is not ready yet.") return end
+    local m = GetRoundMap()
+    if not m then Notify("I could not detect a round map yet.") return end
+    local sp = m:FindFirstChild("Spawn",true) or m:FindFirstChild("SpawnLocation",true)
+    if not sp or not sp:IsA("BasePart") then sp = m:FindFirstChildWhichIsA("BasePart",true) end
+    if not sp then Notify("That map has no spawn part.") return end
+    local was = Noclip; Noclip = true
+    r.CFrame = CFrame.new(sp.Position + Vector3.new(0, 5, 0))
+    task.wait(0.15)
+    if not was then Noclip = false end
+    Notify("Teleported to the map: " .. m.Name)
+end
+
+-- ============================================================
+-- HOME TAB
+-- ============================================================
+AddSection(HomeTab, "Welcome")
+AddLabel(HomeTab, "Welcome, " .. LocalPlayer.Name .. " — thanks for using Nexon Hub!")
+AddLabel(HomeTab, "Press LeftControl to toggle the menu.")
+AddLabel(HomeTab, "Use the tabs on the left to navigate.")
+
+-- ============================================================
+-- VISUALS TAB
+-- ============================================================
+AddSection(VisualsTab, "ESP")
+AddToggle(VisualsTab, "Player ESP", "Highlights every player + shows their name", false, function(s)
+    PlayerESP = s
+    if not s then for _, p in pairs(Players:GetPlayers()) do CleanupESP(p) end end
+end)
+AddToggle(VisualsTab, "Murderer ESP", "Highlights the current murderer in red", false, function(s) RoleMurderer = s end)
+AddToggle(VisualsTab, "Sheriff ESP", "Highlights the current sheriff in blue", false, function(s) RoleSheriff = s end)
+AddToggle(VisualsTab, "Innocents ESP", "Highlights innocent players in green", false, function(s) RoleInnocent = s end)
+AddToggleWithKeybind(VisualsTab, "X-Ray Vision", "Makes the world semi-transparent so you can see players", false, function(s)
+    for _, o in pairs(Workspace:GetDescendants()) do
+        if o:IsA("BasePart") then
+            local p = o.Parent
+            if p and not p:FindFirstChildOfClass("Humanoid") then
+                o.LocalTransparencyModifier = s and 0.75 or 0
+            end
+        end
+    end
+end)
+
+-- ============================================================
+-- MOVEMENT TAB
+-- ============================================================
+AddSection(MovementTab, "Fly")
+
+AddToggleWithKeybind(MovementTab, "Fly Mode", "WASD to move, Space up, Shift down, ▲▼ buttons on mobile", false, function(s)
+    if s then FlyUtil:Start(); FlyGui.Enabled = true
+    else FlyUtil:Stop(); FlyGui.Enabled = false end
+end)
+
+AddSlider(MovementTab, "Fly Speed", "How fast you fly while in fly mode", 10, 350, 50, function(v) FlyUtil:SetMaxSpeed(v) end)
+
+AddSection(MovementTab, "Fling")
+
+AddButton(MovementTab, "Fling Closest Player", "Fling the closest person to you", function()
+    local t = GetClosestPlayer()
+    if not t then Notify("There is nobody nearby to fling.") return end
+    Notify("Flinging " .. t.Name .. "...")
+    FlingPlayer(t)
+end)
+AddInput(MovementTab, "Type a player name to fling", "Fling", function(text)
+    local t = FindPlayerByName(text)
+    if not t then Notify("I could not find a player by that name.") return end
+    Notify("Flinging " .. t.Name .. "...")
+    FlingPlayer(t)
+end)
+AddButton(MovementTab, "Fling Everyone", "Fling every other player in the game", function()
+    Notify("Flinging everyone — this may take a moment.")
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then task.spawn(function() FlingPlayer(p) end) end
+    end
+end)
+
+local AutoFlingOn = false
+AddToggle(MovementTab, "Auto Fling Closest", "Every 3 seconds fling the closest player automatically", false, function(s)
+    AutoFlingOn = s
+    if s then
+        Notify("Auto Fling is now on — thanks for using Nexon Hub.")
+        task.spawn(function()
+            while AutoFlingOn do
+                local t = GetClosestPlayer()
+                if t then pcall(function() FlingPlayer(t) end) end
+                task.wait(3)
+            end
+        end)
+    else
+        Notify("Auto Fling is now off.")
+    end
+end)
+
+AddSection(MovementTab, "Anti-Fling")
+
+AddToggle(MovementTab, "Anti-Fling", "Detects flingers and neutralizes your velocity", false, function(s)
+    AntiFling = s
+    if s then StartAntiFling(); Notify("Anti-Fling is now on.")
+    else StopAntiFling(); Notify("Anti-Fling is now off.") end
+end)
+
+AddSection(MovementTab, "General")
+
+local InfJumpConn = nil
+AddToggle(MovementTab, "Infinite Jump", "Lets you jump in mid-air, forever", false, function(s)
+    if s then
+        InfJumpConn = UserInputService.JumpRequest:Connect(function()
+            local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+        end)
+    else
+        if InfJumpConn then InfJumpConn:Disconnect(); InfJumpConn = nil end
+    end
+end)
+
+AddToggleWithKeybind(MovementTab, "Noclip", "Walk through walls and objects", false, function(s) Noclip = s end)
+AddToggleWithKeybind(MovementTab, "Reclip (Solidify)", "Re-enables collisions on your character", false, function(s) Reclip = s end)
+AddToggle(MovementTab, "CTRL+Click Teleport", "Hold CTRL and left-click to teleport to that spot", false, function(s) CtrlClickTP = s end)
+
+AddToggle(MovementTab, "Enable WalkSpeed", "Applies your custom walkspeed", false, function(s)
+    LoopWSFOV = LoopWSFOV or s
+    local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if h then h.WalkSpeed = s and WSVal or 16 end
+end)
+AddSlider(MovementTab, "WalkSpeed", "How fast your character walks", 16, 300, 16, function(v)
+    WSVal = v
+    local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if h then h.WalkSpeed = v end
+end)
+AddToggle(MovementTab, "Loop WalkSpeed + FOV", "Keeps walkspeed and FOV locked at your values", false, function(s) LoopWSFOV = s end)
+AddSlider(MovementTab, "FOV", "Camera field of view (how much you can see)", 40, 140, 70, function(v)
+    FOVVal = v
+    Workspace.CurrentCamera.FieldOfView = v
+end)
+
+-- ============================================================
+-- MURDERER TAB
+-- ============================================================
+AddSection(MurdererTab, "Only works when you are the Murderer")
+
+AddToggle(MurdererTab, "Kill Farm (Hostage)", "Teleport to every player and slash them one by one", false, function(s)
+    if s and not IsLocalMurderer() then Notify("You must be the murderer to use this.") end
+    KillFarm = s
+end)
+
+AddToggle(MurdererTab, "Auto Shoot (Cursor)", "Automatically clicks the knife for you on the closest player", false, function(s)
+    if s and not IsLocalMurderer() then Notify("You must be the murderer to use this.") end
+    MurderAutoShoot = s
+    SetCursor(s)
+end)
+
+AddToggle(MurdererTab, "Kill Aura", "Kills anyone within your aura range", false, function(s)
+    if s and not IsLocalMurderer() then Notify("You must be the murderer to use this.") end
+    KillAura = s
+end)
+
+AddToggle(MurdererTab, "Kill Aura Vision", "Shows a sphere around you showing your aura range", false, function(s) KillAuraVision = s end)
+AddSlider(MurdererTab, "Kill Aura Range", "How far your kill aura reaches (in studs)", 5, 100, 20, function(v) KillAuraRange = v end)
+
+AddButton(MurdererTab, "Camp Gun", "Anchors you on top of the dropped gun until someone picks it up", function()
+    if not IsLocalMurderer() then Notify("You must be the murderer to use this.") return end
+    if CampGun then StopCampGun(); Notify("Camp Gun has been turned off.")
+    else if StartCampGun() then Notify("Camp Gun is now on — you are locked onto the gun drop.") end end
+end)
+
+-- ============================================================
+-- SHERIFF TAB
+-- ============================================================
+AddSection(SheriffTab, "Only works when you are the Sheriff")
+
+AddToggle(SheriffTab, "Aim Lock on Murderer", "Camera always aims at the murderer", false, function(s)
+    if s and not IsLocalSheriff() then Notify("You must be the sheriff to use this.") end
+    SherAimLock = s
+end)
+AddToggle(SheriffTab, "Auto Shoot Murderer", "Fires the gun at the murderer when in range", false, function(s)
+    if s and not IsLocalSheriff() then Notify("You must be the sheriff to use this.") end
+    SherAutoShoot = s
+end)
+AddSlider(SheriffTab, "Auto Shoot Range", "How close the murderer must be before shooting", 5, 100, 15, function(v) SherRange = v end)
+AddButton(SheriffTab, "Shoot Murderer (Once)", "Aim and fire one shot at the murderer immediately", function()
+    local mp = GetMurdererPlayer()
+    if not mp then Notify("The murderer could not be found.") return end
+    local mr = mp.Character:FindFirstChild("HumanoidRootPart")
+    local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if r and mr then r.CFrame = CFrame.new(r.Position, mr.Position) end
+    local g = EnsureGunEquipped()
+    if g then pcall(function() g:Activate() end); Notify("Fired at the murderer.") else Notify("You do not have the gun.") end
+end)
+AddToggle(SheriffTab, "Auto Gun Grab (Continuous)", "Constantly teleports the gun drop to you", false, function(s) AutoGunGrab = s end)
+AddButton(SheriffTab, "Gun Grab (Once)", "Teleports the gun drop to you once", function()
+    local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not r then return end
+    local function tp(o)
+        if o:IsA("BasePart") and (o.Name=="GunDrop" or o.Name=="RevolverDrop") then o.CFrame = r.CFrame
+        elseif o:IsA("Model") then
+            for _,p in pairs(o:GetDescendants()) do
+                if p:IsA("BasePart") and (p.Name=="GunDrop" or p.Name=="RevolverDrop") then p.CFrame = r.CFrame end
+            end
+        end
+    end
+    for _,o in pairs(Workspace:GetDescendants()) do
+        if o.Name == "GunDrop" or o.Name == "RevolverDrop" then tp(o) end
+    end
+    Notify("The gun has been grabbed.")
+end)
+
+-- ============================================================
+-- FARM TAB
+-- ============================================================
+AddSection(FarmTab, "Coin Farm")
+AddToggle(FarmTab, "Coin Farm (Safe)", "Smoothly slides you to every coin without kicking you", false, function(s)
+    CoinFarm = s
+    if s then
+        CoinWasNoclip = Noclip; Noclip = true
+        pcall(function()
+            if getconnections then
+                for _, v in pairs(getconnections(LocalPlayer.Idled)) do v:Disable() end
+            end
+        end)
+        Notify("Coin Farm is now on. Enjoy!")
+    else
+        if not CoinWasNoclip then Noclip = false end
+        Notify("Coin Farm is now off.")
+    end
+end)
+
+-- ============================================================
+-- TELEPORT TAB
+-- ============================================================
+AddSection(TeleportTab, "Map & Player Teleports")
+
+AddButton(TeleportTab, "Teleport to Map (Current Round)", "Teleports you to the current round's map", TeleportToMap)
+AddButton(TeleportTab, "Show Current Map Name", "Prints the current map name in a notification", function()
+    local m = GetRoundMap()
+    if m then Notify("Current map: " .. m.Name) else Notify("No map could be detected right now.") end
+end)
+AddButton(TeleportTab, "Teleport to Lobby", "Sends you back to the lobby", function()
+    local l = Workspace:FindFirstChild("Lobby")
+    if not l then Notify("The lobby could not be found.") return end
+    local sp = l:FindFirstChild("Spawns") and l.Spawns:FindFirstChildWhichIsA("SpawnLocation")
+    if sp then
+        local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if r then r.CFrame = CFrame.new(sp.Position + Vector3.new(0, 5, 0)) end
+        Notify("You have been teleported to the lobby.")
+    else Notify("I could not find the lobby spawn.") end
+end)
+
+AddSection(TeleportTab, "Players Online")
+
+local PlayerList = Instance.new("Frame")
+PlayerList.Parent = TeleportTab
+PlayerList.BackgroundColor3 = THEME.Card; PlayerList.BorderSizePixel = 0
+PlayerList.Size = UDim2.new(1, -10, 0, 200); PlayerList.AutomaticSize = Enum.AutomaticSize.Y
+RegisterElement(PlayerList, "Card")
+local PLCorner = Instance.new("UICorner"); PLCorner.CornerRadius = UDim.new(0, 8); PLCorner.Parent = PlayerList
+local PLStroke = Instance.new("UIStroke"); PLStroke.Parent = PlayerList; PLStroke.Color = THEME.Stroke; PLStroke.Transparency = 0.4
+local PLPad = Instance.new("UIPadding"); PLPad.Parent = PlayerList
+PLPad.PaddingTop = UDim.new(0, 8); PLPad.PaddingBottom = UDim.new(0, 8)
+local PLLayout = Instance.new("UIListLayout"); PLLayout.Parent = PlayerList
+PLLayout.SortOrder = Enum.SortOrder.LayoutOrder; PLLayout.Padding = UDim.new(0, 6)
+PLLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local PlayerButtons = {}
+local function RebuildPlayerList()
+    for _, b in pairs(PlayerButtons) do b:Destroy() end
+    PlayerButtons = {}
+    local i = 0
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            i = i + 1
+            local btn = Instance.new("TextButton")
+            btn.Parent = PlayerList; btn.BackgroundColor3 = THEME.ToggleOff; btn.BorderSizePixel = 0
+            btn.Size = UDim2.new(1, -16, 0, 32); btn.Font = Enum.Font.GothamSemibold
+            btn.Text = "Teleport to " .. plr.Name; btn.TextColor3 = THEME.Text; btn.TextSize = 12
+            btn.AutoButtonColor = false; btn.LayoutOrder = i
+            local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 6); c.Parent = btn
+            btn.MouseButton1Click:Connect(function()
+                local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local tr = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if r and tr then r.CFrame = CFrame.new(tr.Position + Vector3.new(0, 3, 0)); Notify("Teleported to " .. plr.Name .. ".") end
+            end)
+            table.insert(PlayerButtons, btn)
+        end
+    end
+end
+RebuildPlayerList()
+Players.PlayerAdded:Connect(function() task.wait(0.2); RebuildPlayerList() end)
+Players.PlayerRemoving:Connect(function() task.wait(0.2); RebuildPlayerList() end)
+
+-- ============================================================
+-- CONFUSIONS TAB
+-- ============================================================
+AddSection(ConfusionsTab, "If you're confused")
+AddLabel(ConfusionsTab, "Press the button below for help.")
+AddLabel(ConfusionsTab, "It will tell you where to go or who to ask.")
+
+local ConfuseCount = 0
+AddButton(ConfusionsTab, "Im confused", "Press to see how to get help", function()
+    ConfuseCount = ConfuseCount + 1
+    if ConfuseCount >= 10 then
+        Notify("make a ticket bro or ask in general chat")
+        task.wait(0.5)
+        pcall(function() LocalPlayer:Kick("make a ticket bro or ask in general chat") end)
+        return
+    end
+    if ConfuseCount >= 8 then
+        Notify("bro youre about to get kicked if you press it 2 more times")
+    elseif ConfuseCount == 1 then
+        Notify("make a ticket or ask xmijovanxmi hub owner")
+    else
+        Notify("make a ticket or ask xmijovanxmi hub owner  x" .. ConfuseCount)
+    end
+end)
+
+-- ============================================================
+-- CREDITS TAB
+-- ============================================================
+AddSection(CreditsTab, "Credits")
+
+local CreditsBox = Instance.new("Frame")
+CreditsBox.Parent = CreditsTab; CreditsBox.BackgroundColor3 = THEME.Card
+CreditsBox.BorderSizePixel = 0; CreditsBox.Size = UDim2.new(1, -10, 0, 66)
+RegisterElement(CreditsBox, "Card")
+local CC = Instance.new("UICorner"); CC.CornerRadius = UDim.new(0, 8); CC.Parent = CreditsBox
+local CS = Instance.new("UIStroke"); CS.Parent = CreditsBox; CS.Color = THEME.Stroke; CS.Transparency = 0.4
+
+local CT1 = Instance.new("TextLabel")
+CT1.Parent = CreditsBox; CT1.BackgroundTransparency = 1
+CT1.Position = UDim2.new(0, 15, 0, 18); CT1.Size = UDim2.new(1, -30, 0, 30)
+CT1.Font = Enum.Font.GothamBold; CT1.Text = "Script Owner: xmijovanxmi"
+CT1.TextColor3 = THEME.Accent; CT1.TextSize = 13; CT1.TextXAlignment = Enum.TextXAlignment.Left
+RegisterElement(CT1, "Text")
+
+Notify("Thanks for using the script")
+
+end
