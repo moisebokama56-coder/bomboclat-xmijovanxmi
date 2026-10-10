@@ -1,0 +1,1076 @@
+--// Services
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+--// Configuration
+local HUB_NAME = "NEXON HUB"
+local VALID_KEY = "NexonHub2026"
+local DISCORD_LINK = "https://discord.gg/anf3hPxdhT"
+
+--==================================================
+-- ALL SCRIPT ASSET IDS USED IN THIS HUB
+--==================================================
+-- rbxassetid://129531869048559  -> Nexon Hub Logo
+-- rbxassetid://129531869048559  -> Mega Noob Simulator Card Icon
+-- rbxassetid://129531869048559  -> Muscle Legends Card Icon
+-- rbxassetid://129531869048559  -> Mm2 Nexon Hub Card Icon
+-- rbxassetid://5198838744       -> Close Button (X)
+-- rbxassetid://10736448044      -> Status Icon
+-- rbxassetid://10736448044      -> Key Icon
+-- rbxassetid://81513337702211   -> Sans Decoration (spinning)
+-- rbxassetid://111819989880544  -> Music On Icon
+-- rbxassetid://124256163863844  -> Music Off Icon
+-- rbxassetid://10239810201      -> Scary Sans (close effect)
+-- rbxassetid://73298582452522   -> Wrong Sound
+-- rbxassetid://127727422085625  -> Success Sound
+-- rbxassetid://139807624552008  -> Scary Sound
+-- rbxassetid://116843623732343  -> Background Music
+--==================================================
+
+--// Mobile detection
+local IsMobile =
+    UserInputService.TouchEnabled
+    and not UserInputService.KeyboardEnabled
+
+--// Safe destroy
+local function safeDestroy(object)
+    if object then
+        pcall(function()
+            object:Destroy()
+        end)
+    end
+end
+
+--// Clipboard helper (works across executors)
+local function copyToClipboard(text)
+    local ok = false
+    pcall(function()
+        if setclipboard then
+            setclipboard(text); ok = true
+        elseif syn and syn.setclipboard then
+            syn.setclipboard(text); ok = true
+        elseif Clipboard and Clipboard.set then
+            Clipboard.set(text); ok = true
+        end
+    end)
+    return ok
+end
+
+--// Remove previous Nexon Hub interfaces
+safeDestroy(CoreGui:FindFirstChild("NexonHubKeySystem"))
+safeDestroy(CoreGui:FindFirstChild("NexonHubSelector"))
+
+--==================================================
+-- SOUND SETUP
+--==================================================
+
+local function createSound(name, id, volume, looped)
+    local sound = Instance.new("Sound")
+    sound.Name = name
+    sound.SoundId = "rbxassetid://" .. tostring(id)
+    sound.Volume = volume or 1
+    sound.Looped = looped or false
+    sound.Parent = SoundService
+    return sound
+end
+
+local WrongSound      = createSound("NexonWrongSound",      73298582452522, 1, false)
+local SuccessSound    = createSound("NexonSuccessSound",    127727422085625, 1, false)
+local ScarySound      = createSound("NexonScarySound",      139807624552008, 2, false)
+local BackgroundMusic = createSound("NexonBackgroundMusic", 116843623732343, 0.6, true)
+
+--==================================================
+-- MAIN GUI
+--==================================================
+
+local KeyGui = Instance.new("ScreenGui")
+KeyGui.Name = "NexonHubKeySystem"
+KeyGui.IgnoreGuiInset = true
+KeyGui.ResetOnSpawn = false
+KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+KeyGui.Parent = CoreGui
+
+--==================================================
+-- BLACK BACKGROUND
+--==================================================
+
+local BlackBackground = Instance.new("Frame")
+BlackBackground.Name = "BlackBackground"
+BlackBackground.Size = UDim2.fromScale(1, 1)
+BlackBackground.Position = UDim2.fromScale(0, 0)
+BlackBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+BlackBackground.BackgroundTransparency = 1
+BlackBackground.BorderSizePixel = 0
+BlackBackground.ZIndex = 0
+BlackBackground.Parent = KeyGui
+
+--==================================================
+-- MAIN FRAME
+--==================================================
+
+local DesktopSize = UDim2.fromOffset(340, 450)
+local MobileSize  = UDim2.fromOffset(360, 500)
+local TargetSize  = IsMobile and MobileSize or DesktopSize
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.fromOffset(0, 0)
+MainFrame.Position = UDim2.fromScale(0.5, 0.5)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Rotation = -180
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 14, 24)
+MainFrame.BackgroundTransparency = 0
+MainFrame.BorderSizePixel = 0
+MainFrame.ZIndex = 1
+MainFrame.Parent = KeyGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Name = "Glow"
+MainStroke.Color = Color3.fromRGB(43, 115, 225)
+MainStroke.Transparency = 0.2
+MainStroke.Thickness = 2
+MainStroke.Parent = MainFrame
+
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 26, 45)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 11, 18))
+})
+MainGradient.Rotation = 45
+MainGradient.Parent = MainFrame
+
+--==================================================
+-- DRAGGING
+--==================================================
+
+local Dragging = false
+local DragStart
+local StartPosition
+local DragInput
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = MainFrame.Position
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        DragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == DragInput and Dragging then
+        local Delta = input.Position - DragStart
+        MainFrame.Position = UDim2.new(
+            StartPosition.X.Scale,
+            StartPosition.X.Offset + Delta.X,
+            StartPosition.Y.Scale,
+            StartPosition.Y.Offset + Delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = false
+    end
+end)
+
+--==================================================
+-- CLOSE BUTTON (X icon)
+--==================================================
+
+local CloseButton = Instance.new("ImageButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.fromOffset(26, 26)
+CloseButton.Position = UDim2.new(1, -38, 0, 18)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Image = "rbxassetid://5198838744"
+CloseButton.ImageColor3 = Color3.fromRGB(180, 200, 230)
+CloseButton.ZIndex = 10
+CloseButton.Parent = MainFrame
+
+--==================================================
+-- PROFILE
+--==================================================
+
+local ProfileFrame = Instance.new("Frame")
+ProfileFrame.Name = "ProfileFrame"
+ProfileFrame.Size = UDim2.new(0.92, 0, 0, 65)
+ProfileFrame.Position = UDim2.new(0.04, 0, 0.03, 0)
+ProfileFrame.BackgroundColor3 = Color3.fromRGB(25, 35, 58)
+ProfileFrame.BackgroundTransparency = 0.2
+ProfileFrame.BorderSizePixel = 0
+ProfileFrame.ZIndex = 2
+ProfileFrame.Parent = MainFrame
+
+local ProfileCorner = Instance.new("UICorner")
+ProfileCorner.CornerRadius = UDim.new(0, 12)
+ProfileCorner.Parent = ProfileFrame
+
+local ProfileStroke = Instance.new("UIStroke")
+ProfileStroke.Color = Color3.fromRGB(60, 90, 140)
+ProfileStroke.Transparency = 0.5
+ProfileStroke.Parent = ProfileFrame
+
+local Avatar = Instance.new("ImageLabel")
+Avatar.Size = UDim2.fromOffset(48, 48)
+Avatar.Position = UDim2.new(0.04, 0, 0.5, -24)
+Avatar.BackgroundTransparency = 1
+Avatar.ZIndex = 3
+Avatar.Parent = ProfileFrame
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = Avatar
+
+task.spawn(function()
+    local Success, Image = pcall(function()
+        return Players:GetUserThumbnailAsync(
+            LocalPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size150x150
+        )
+    end)
+    if Success and Image then
+        Avatar.Image = Image
+    end
+end)
+
+local NameLabel = Instance.new("TextLabel")
+NameLabel.Size = UDim2.new(0.65, 0, 0, 22)
+NameLabel.Position = UDim2.new(0.24, 0, 0.18, 0)
+NameLabel.BackgroundTransparency = 1
+NameLabel.Font = Enum.Font.GothamBold
+NameLabel.Text = LocalPlayer.Name
+NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameLabel.TextSize = 15
+NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+NameLabel.ZIndex = 3
+NameLabel.Parent = ProfileFrame
+
+local TagLabel = Instance.new("TextLabel")
+TagLabel.Size = UDim2.new(0.65, 0, 0, 18)
+TagLabel.Position = UDim2.new(0.24, 0, 0.52, 0)
+TagLabel.BackgroundTransparency = 1
+TagLabel.Font = Enum.Font.Gotham
+TagLabel.Text = "@" .. LocalPlayer.DisplayName
+TagLabel.TextColor3 = Color3.fromRGB(150, 175, 210)
+TagLabel.TextSize = 12
+TagLabel.TextXAlignment = Enum.TextXAlignment.Left
+TagLabel.ZIndex = 3
+TagLabel.Parent = ProfileFrame
+
+--==================================================
+-- HUB LOGO (circular)
+--==================================================
+
+local Logo = Instance.new("ImageLabel")
+Logo.Size = UDim2.fromOffset(72, 72)
+Logo.Position = UDim2.new(0.5, -36, 0, 82)
+Logo.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+Logo.BackgroundTransparency = 0.2
+Logo.BorderSizePixel = 0
+Logo.Image = "rbxassetid://129531869048559"
+Logo.ScaleType = Enum.ScaleType.Crop
+Logo.ZIndex = 3
+Logo.Parent = MainFrame
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(1, 0)
+LogoCorner.Parent = Logo
+
+local LogoStroke = Instance.new("UIStroke")
+LogoStroke.Color = Color3.fromRGB(60, 120, 220)
+LogoStroke.Transparency = 0.3
+LogoStroke.Thickness = 2
+LogoStroke.Parent = Logo
+
+--==================================================
+-- TITLE
+--==================================================
+
+local HubTitle = Instance.new("TextLabel")
+HubTitle.Size = UDim2.new(1, 0, 0, 25)
+HubTitle.Position = UDim2.new(0, 0, 0, 160)
+HubTitle.BackgroundTransparency = 1
+HubTitle.Font = Enum.Font.GothamBold
+HubTitle.Text = HUB_NAME
+HubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+HubTitle.TextSize = 20
+HubTitle.ZIndex = 3
+HubTitle.Parent = MainFrame
+
+local HubSubtitle = Instance.new("TextLabel")
+HubSubtitle.Size = UDim2.new(1, 0, 0, 15)
+HubSubtitle.Position = UDim2.new(0, 0, 0, 186)
+HubSubtitle.BackgroundTransparency = 1
+HubSubtitle.Font = Enum.Font.GothamMedium
+HubSubtitle.Text = "Secure Authentication"
+HubSubtitle.TextColor3 = Color3.fromRGB(130, 160, 200)
+HubSubtitle.TextSize = 11
+HubSubtitle.ZIndex = 3
+HubSubtitle.Parent = MainFrame
+
+--==================================================
+-- STATUS BOX
+--==================================================
+
+local StatusBox = Instance.new("Frame")
+StatusBox.Name = "StatusBox"
+StatusBox.Size = UDim2.new(0.92, 0, 0, 50)
+StatusBox.Position = UDim2.new(0.04, 0, 0, 215)
+StatusBox.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+StatusBox.BorderSizePixel = 0
+StatusBox.ZIndex = 2
+StatusBox.Parent = MainFrame
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 10)
+StatusCorner.Parent = StatusBox
+
+local StatusIcon = Instance.new("ImageLabel")
+StatusIcon.Size = UDim2.fromOffset(26, 26)
+StatusIcon.Position = UDim2.new(0.04, 0, 0.5, -13)
+StatusIcon.BackgroundTransparency = 1
+StatusIcon.Image = "rbxassetid://10736448044"
+StatusIcon.ZIndex = 3
+StatusIcon.Parent = StatusBox
+
+local StatusTitle = Instance.new("TextLabel")
+StatusTitle.Size = UDim2.new(0.7, 0, 0, 16)
+StatusTitle.Position = UDim2.new(0.16, 0, 0.12, 0)
+StatusTitle.BackgroundTransparency = 1
+StatusTitle.Font = Enum.Font.GothamBold
+StatusTitle.Text = "STATUS"
+StatusTitle.TextColor3 = Color3.fromRGB(130, 160, 200)
+StatusTitle.TextSize = 10
+StatusTitle.TextXAlignment = Enum.TextXAlignment.Left
+StatusTitle.ZIndex = 3
+StatusTitle.Parent = StatusBox
+
+local StatusDescription = Instance.new("TextLabel")
+StatusDescription.Size = UDim2.new(0.7, 0, 0, 22)
+StatusDescription.Position = UDim2.new(0.16, 0, 0.45, 0)
+StatusDescription.BackgroundTransparency = 1
+StatusDescription.Font = Enum.Font.GothamBold
+StatusDescription.Text = "Enter key"
+StatusDescription.TextColor3 = Color3.fromRGB(245, 170, 70)
+StatusDescription.TextSize = 13
+StatusDescription.TextXAlignment = Enum.TextXAlignment.Left
+StatusDescription.ZIndex = 3
+StatusDescription.Parent = StatusBox
+
+--==================================================
+-- KEY INPUT
+--==================================================
+
+local KeyInputFrame = Instance.new("Frame")
+KeyInputFrame.Name = "KeyInputFrame"
+KeyInputFrame.Size = UDim2.new(0.92, 0, 0, 50)
+KeyInputFrame.Position = UDim2.new(0.04, 0, 0, 278)
+KeyInputFrame.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+KeyInputFrame.BorderSizePixel = 0
+KeyInputFrame.ZIndex = 2
+KeyInputFrame.Parent = MainFrame
+
+local KeyCorner = Instance.new("UICorner")
+KeyCorner.CornerRadius = UDim.new(0, 10)
+KeyCorner.Parent = KeyInputFrame
+
+local KeyIcon = Instance.new("ImageLabel")
+KeyIcon.Size = UDim2.fromOffset(26, 26)
+KeyIcon.Position = UDim2.new(0.04, 0, 0.5, -13)
+KeyIcon.BackgroundTransparency = 1
+KeyIcon.Image = "rbxassetid://10736448044"
+KeyIcon.ZIndex = 3
+KeyIcon.Parent = KeyInputFrame
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Name = "KeyInput"
+KeyInput.Size = UDim2.new(0.75, 0, 1, 0)
+KeyInput.Position = UDim2.new(0.16, 0, 0, 0)
+KeyInput.BackgroundTransparency = 1
+KeyInput.ClearTextOnFocus = false
+KeyInput.Font = Enum.Font.GothamMedium
+KeyInput.PlaceholderText = "Key_example"
+KeyInput.PlaceholderColor3 = Color3.fromRGB(90, 110, 140)
+KeyInput.Text = ""
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.TextSize = 14
+KeyInput.TextXAlignment = Enum.TextXAlignment.Left
+KeyInput.ZIndex = 3
+KeyInput.Parent = KeyInputFrame
+
+--==================================================
+-- BUTTON CREATOR
+--==================================================
+
+local function createButton(name, text, position, size, color)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Size = size
+    Button.Position = position
+    Button.BackgroundColor3 = color
+    Button.BorderSizePixel = 0
+    Button.AutoButtonColor = false
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    Button.ZIndex = 3
+    Button.Parent = MainFrame
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Button
+
+    return Button
+end
+
+local RedeemButton = createButton(
+    "RedeemButton",
+    "Redeem",
+    UDim2.new(0.04, 0, 0, 345),
+    UDim2.new(0.44, 0, 0, 48),
+    Color3.fromRGB(38, 105, 215)
+)
+
+local GetKeyButton = createButton(
+    "GetKeyButton",
+    "Get Key",
+    UDim2.new(0.52, 0, 0, 345),
+    UDim2.new(0.44, 0, 0, 48),
+    Color3.fromRGB(36, 175, 84)
+)
+
+--==================================================
+-- SANS DECORATION
+--==================================================
+
+local SansDecor = Instance.new("ImageLabel")
+SansDecor.Name = "SansDecor"
+SansDecor.Size = UDim2.fromOffset(40, 40)
+SansDecor.AnchorPoint = Vector2.new(1, 1)
+SansDecor.Position = UDim2.new(1, -11, 1, -10)
+SansDecor.BackgroundTransparency = 1
+SansDecor.Image = "rbxassetid://81513337702211"
+SansDecor.ZIndex = 4
+SansDecor.Parent = MainFrame
+
+local SpinConnection
+SpinConnection = RunService.RenderStepped:Connect(function(deltaTime)
+    if not SansDecor.Parent then
+        SpinConnection:Disconnect()
+        return
+    end
+    SansDecor.Rotation = (SansDecor.Rotation + deltaTime * 130) % 360
+end)
+
+--==================================================
+-- MUSIC BUTTON
+--==================================================
+
+local MusicButton = Instance.new("ImageButton")
+MusicButton.Name = "MusicToggle"
+MusicButton.Size = UDim2.fromOffset(32, 32)
+MusicButton.AnchorPoint = Vector2.new(1, 0)
+MusicButton.Position = UDim2.new(1, -20, 0, 20)
+MusicButton.BackgroundTransparency = 1
+MusicButton.Image = "rbxassetid://111819989880544"
+MusicButton.ZIndex = 20
+MusicButton.Parent = KeyGui
+
+local MusicPlaying = true
+
+MusicButton.MouseButton1Click:Connect(function()
+    if not MusicButton.Visible then return end
+    MusicPlaying = not MusicPlaying
+    if MusicPlaying then
+        BackgroundMusic:Resume()
+        MusicButton.Image = "rbxassetid://111819989880544"
+    else
+        BackgroundMusic:Pause()
+        MusicButton.Image = "rbxassetid://124256163863844"
+    end
+end)
+
+--==================================================
+-- HOVER EFFECT
+--==================================================
+
+local function ApplyHover(Button, NormalColor, HoverColor)
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(
+            Button,
+            TweenInfo.new(0.2),
+            { BackgroundColor3 = HoverColor }
+        ):Play()
+    end)
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(
+            Button,
+            TweenInfo.new(0.2),
+            { BackgroundColor3 = NormalColor }
+        ):Play()
+    end)
+end
+
+ApplyHover(RedeemButton, Color3.fromRGB(38, 105, 215), Color3.fromRGB(50, 130, 255))
+ApplyHover(GetKeyButton, Color3.fromRGB(36, 175, 84),  Color3.fromRGB(45, 210, 100))
+
+--==================================================
+-- INTRO ANIMATION
+--==================================================
+
+task.spawn(function()
+    BackgroundMusic:Play()
+    TweenService:Create(
+        BlackBackground,
+        TweenInfo.new(0.4),
+        { BackgroundTransparency = 0 }
+    ):Play()
+    TweenService:Create(
+        MainFrame,
+        TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {
+            Size = TargetSize,
+            Position = UDim2.fromScale(0.5, 0.5),
+            Rotation = 0
+        }
+    ):Play()
+end)
+
+--==================================================
+-- GET KEY
+--==================================================
+
+GetKeyButton.MouseButton1Click:Connect(function()
+    local ok = copyToClipboard(DISCORD_LINK)
+
+    GetKeyButton.Text = ok and "Copied!" or "Copy Failed"
+
+    TweenService:Create(
+        GetKeyButton,
+        TweenInfo.new(0.1),
+        { BackgroundColor3 = Color3.fromRGB(255, 215, 0) }
+    ):Play()
+
+    task.wait(1.5)
+
+    if GetKeyButton.Parent then
+        GetKeyButton.Text = "Get Key"
+        TweenService:Create(
+            GetKeyButton,
+            TweenInfo.new(0.1),
+            { BackgroundColor3 = Color3.fromRGB(36, 175, 84) }
+        ):Play()
+    end
+end)
+
+--==================================================
+-- GAME SELECTOR
+--==================================================
+
+local function CreateGameSelector()
+
+    local SelectorGui = Instance.new("ScreenGui")
+    SelectorGui.Name = "NexonHubSelector"
+    SelectorGui.IgnoreGuiInset = true
+    SelectorGui.ResetOnSpawn = false
+    SelectorGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    SelectorGui.Parent = CoreGui
+
+    local SelectorBackground = Instance.new("Frame")
+    SelectorBackground.Name = "Background"
+    SelectorBackground.Size = UDim2.fromScale(1, 1)
+    SelectorBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    SelectorBackground.BackgroundTransparency = 0.45
+    SelectorBackground.BorderSizePixel = 0
+    SelectorBackground.ZIndex = 0
+    SelectorBackground.Parent = SelectorGui
+
+    local SelectorFrame = Instance.new("Frame")
+    SelectorFrame.Name = "SelectorFrame"
+    SelectorFrame.Size = UDim2.fromOffset(420, 520)
+    SelectorFrame.Position = UDim2.fromScale(0.5, 0.5)
+    SelectorFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    SelectorFrame.BackgroundColor3 = Color3.fromRGB(10, 14, 24)
+    SelectorFrame.BackgroundTransparency = 0.15
+    SelectorFrame.BorderSizePixel = 0
+    SelectorFrame.ZIndex = 2
+    SelectorFrame.Parent = SelectorGui
+
+    local SelectorCorner = Instance.new("UICorner")
+    SelectorCorner.CornerRadius = UDim.new(0, 16)
+    SelectorCorner.Parent = SelectorFrame
+
+    local SelectorStroke = Instance.new("UIStroke")
+    SelectorStroke.Color = Color3.fromRGB(43, 115, 225)
+    SelectorStroke.Transparency = 0.4
+    SelectorStroke.Thickness = 2
+    SelectorStroke.Parent = SelectorFrame
+
+    local SelectorGradient = Instance.new("UIGradient")
+    SelectorGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 26, 45)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 11, 18))
+    })
+    SelectorGradient.Rotation = 45
+    SelectorGradient.Parent = SelectorFrame
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.Position = UDim2.fromOffset(0, 26)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "SELECT GAME"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 22
+    Title.ZIndex = 3
+    Title.Parent = SelectorFrame
+
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Size = UDim2.new(1, 0, 0, 18)
+    Subtitle.Position = UDim2.fromOffset(0, 56)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.Font = Enum.Font.GothamMedium
+    Subtitle.Text = "Choose your experience to execute"
+    Subtitle.TextColor3 = Color3.fromRGB(130, 160, 200)
+    Subtitle.TextSize = 12
+    Subtitle.ZIndex = 3
+    Subtitle.Parent = SelectorFrame
+
+    --==================================================
+    -- SCROLLING CONTAINER
+    --==================================================
+
+    local ScrollViewport = Instance.new("Frame")
+    ScrollViewport.Name = "ScriptsViewport"
+    ScrollViewport.BackgroundTransparency = 1
+    ScrollViewport.ClipsDescendants = true
+    ScrollViewport.Position = UDim2.fromOffset(0, 85)
+    ScrollViewport.Size = UDim2.new(1, 0, 1, -85)
+    ScrollViewport.ZIndex = 3
+    ScrollViewport.Parent = SelectorFrame
+
+    local ScriptsScroll = Instance.new("ScrollingFrame")
+    ScriptsScroll.Name = "ScriptsScroll"
+    ScriptsScroll.BackgroundTransparency = 1
+    ScriptsScroll.BorderSizePixel = 0
+    ScriptsScroll.Position = UDim2.fromOffset(0, 0)
+    ScriptsScroll.Size = UDim2.new(1, 0, 1, 0)
+    ScriptsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ScriptsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    ScriptsScroll.ScrollBarThickness = 6
+    ScriptsScroll.ScrollBarImageColor3 = Color3.fromRGB(70, 120, 210)
+    ScriptsScroll.ScrollBarImageTransparency = 0.2
+    ScriptsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    ScriptsScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+    ScriptsScroll.Active = true
+    ScriptsScroll.ZIndex = 3
+    ScriptsScroll.Parent = ScrollViewport
+
+    local CardLayout = Instance.new("UIListLayout")
+    CardLayout.FillDirection = Enum.FillDirection.Vertical
+    CardLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    CardLayout.Padding = UDim.new(0, 10)
+    CardLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    CardLayout.Parent = ScriptsScroll
+
+    local CardPadding = Instance.new("UIPadding")
+    CardPadding.PaddingTop = UDim.new(0, 5)
+    CardPadding.PaddingBottom = UDim.new(0, 15)
+    CardPadding.PaddingLeft = UDim.new(0, 8)
+    CardPadding.PaddingRight = UDim.new(0, 8)
+    CardPadding.Parent = ScriptsScroll
+
+    --==================================================
+    -- GAME CARD
+    --==================================================
+
+    local CardOrder = 0
+
+    local function CreateGameCard(GameName, IconId, Callback)
+
+        CardOrder = CardOrder + 1
+
+        local Card = Instance.new("TextButton")
+        Card.Name = GameName:gsub("%W", "") .. "Card"
+        Card.Size = UDim2.new(1, -12, 0, 65)
+        Card.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+        Card.BackgroundTransparency = 0.3
+        Card.BorderSizePixel = 0
+        Card.AutoButtonColor = false
+        Card.Text = ""
+        Card.LayoutOrder = CardOrder
+        Card.ZIndex = 4
+        Card.Parent = ScriptsScroll
+
+        local CardCorner = Instance.new("UICorner")
+        CardCorner.CornerRadius = UDim.new(0, 12)
+        CardCorner.Parent = Card
+
+        local CardStroke = Instance.new("UIStroke")
+        CardStroke.Color = Color3.fromRGB(50, 80, 130)
+        CardStroke.Transparency = 0.5
+        CardStroke.Parent = Card
+
+        local IconFrame = Instance.new("Frame")
+        IconFrame.Size = UDim2.fromOffset(45, 45)
+        IconFrame.Position = UDim2.new(0.04, 0, 0.5, -22.5)
+        IconFrame.BackgroundColor3 = Color3.fromRGB(30, 42, 68)
+        IconFrame.BorderSizePixel = 0
+        IconFrame.ZIndex = 5
+        IconFrame.Parent = Card
+
+        local IconCorner = Instance.new("UICorner")
+        IconCorner.CornerRadius = UDim.new(1, 0)   -- full circle
+        IconCorner.Parent = IconFrame
+
+        local GameIcon = Instance.new("ImageLabel")
+        GameIcon.Size = UDim2.fromScale(1, 1)      -- fill the round frame
+        GameIcon.Position = UDim2.fromScale(0.5, 0.5)
+        GameIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+        GameIcon.BackgroundTransparency = 1
+        GameIcon.Image = "rbxassetid://" .. tostring(IconId)
+        GameIcon.ScaleType = Enum.ScaleType.Crop   -- keeps image from stretching
+        GameIcon.ZIndex = 6
+        GameIcon.Parent = IconFrame
+
+        local GameIconCorner = Instance.new("UICorner")
+        GameIconCorner.CornerRadius = UDim.new(1, 0)  -- clips image into a circle
+        GameIconCorner.Parent = GameIcon
+
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.65, 0, 1, 0)
+        Label.Position = UDim2.new(0.22, 0, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Font = Enum.Font.GothamBold
+        Label.Text = GameName
+        Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Label.TextSize = 15
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.ZIndex = 5
+        Label.Parent = Card
+
+        local Arrow = Instance.new("TextLabel")
+        Arrow.Size = UDim2.fromOffset(20, 65)
+        Arrow.Position = UDim2.new(0.9, 0, 0, 0)
+        Arrow.BackgroundTransparency = 1
+        Arrow.Font = Enum.Font.GothamBold
+        Arrow.Text = "›"
+        Arrow.TextColor3 = Color3.fromRGB(120, 150, 200)
+        Arrow.TextSize = 22
+        Arrow.ZIndex = 5
+        Arrow.Parent = Card
+
+        Card.MouseEnter:Connect(function()
+            TweenService:Create(Card, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(35, 75, 145),
+                BackgroundTransparency = 0.1
+            }):Play()
+            TweenService:Create(CardStroke, TweenInfo.new(0.2), {
+                Color = Color3.fromRGB(80, 140, 240),
+                Transparency = 0.1
+            }):Play()
+            TweenService:Create(Arrow, TweenInfo.new(0.2), {
+                TextColor3 = Color3.fromRGB(255, 255, 255)
+            }):Play()
+        end)
+
+        Card.MouseLeave:Connect(function()
+            TweenService:Create(Card, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(20, 28, 45),
+                BackgroundTransparency = 0.3
+            }):Play()
+            TweenService:Create(CardStroke, TweenInfo.new(0.2), {
+                Color = Color3.fromRGB(50, 80, 130),
+                Transparency = 0.5
+            }):Play()
+            TweenService:Create(Arrow, TweenInfo.new(0.2), {
+                TextColor3 = Color3.fromRGB(120, 150, 200)
+            }):Play()
+        end)
+
+        Card.MouseButton1Click:Connect(function()
+            SuccessSound:Play()
+
+            TweenService:Create(SelectorBackground, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1
+            }):Play()
+
+            TweenService:Create(
+                SelectorFrame,
+                TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+                { Size = UDim2.fromOffset(0, 0) }
+            ):Play()
+
+            task.wait(0.5)
+            safeDestroy(SelectorGui)
+
+            task.spawn(function()
+                local Success, ErrorMessage = pcall(Callback)
+                if not Success then
+                    warn("[Nexon Hub] Failed to load " .. GameName .. ": " .. tostring(ErrorMessage))
+                end
+            end)
+        end)
+    end
+
+    --==================================================
+    -- GAMES LIST
+    --==================================================
+
+    CreateGameCard("Mega Noob Simulator", "129531869048559", function()
+        print("[Nexon Hub] Loading Mega Noob Simulator...")
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/PatrickJane0Scripts/MegaNoobSimulator/refs/heads/main/MegaNoobSimulator1.lua"
+        ))()
+    end)
+
+    CreateGameCard("Muscle Legends", "129531869048559", function()
+        print("[Nexon Hub] Loading Muscle Legends...")
+        loadstring(game:HttpGet(
+            "https://pastebin.com/raw/ZyJpXKhu"
+        ))()
+    end)
+
+    CreateGameCard("Mm2 Nexon Hub", "129531869048559", function()
+        print("[Nexon Hub] Loading Mm2 Nexon Hub...")
+        loadstring(game:HttpGet(
+            "https://pastebin.com/raw/imnShDEN"
+        ))()
+    end)
+
+    --==================================================
+    -- SCROLL: mouse wheel + touch
+    --==================================================
+
+    local scrollTarget = 0
+
+    local function clampScroll(v)
+        local contentHeight = ScriptsScroll.AbsoluteCanvasSize.Y
+        local visibleHeight = ScriptsScroll.AbsoluteWindowSize.Y
+        local maxScroll = math.max(0, contentHeight - visibleHeight)
+        return math.clamp(v, 0, maxScroll)
+    end
+
+    local scrollTween
+
+    local function smoothScrollTo(y)
+        scrollTarget = clampScroll(y)
+        local current = ScriptsScroll.CanvasPosition.Y
+        if math.abs(current - scrollTarget) < 0.5 then return end
+        if scrollTween then scrollTween:Cancel() end
+        scrollTween = TweenService:Create(
+            ScriptsScroll,
+            TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { CanvasPosition = Vector2.new(0, scrollTarget) }
+        )
+        scrollTween:Play()
+    end
+
+    ScriptsScroll.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseWheel then
+            scrollTarget = clampScroll(scrollTarget - input.Position.Z * 40)
+            smoothScrollTo(scrollTarget)
+        end
+    end)
+
+    local touchStartY = nil
+    local touchStartCanvas = 0
+    local isSwiping = false
+
+    ScriptsScroll.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            touchStartY = input.Position.Y
+            touchStartCanvas = ScriptsScroll.CanvasPosition.Y
+            isSwiping = true
+        end
+    end)
+
+    ScriptsScroll.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and isSwiping then
+            local deltaY = touchStartY - input.Position.Y
+            ScriptsScroll.CanvasPosition = Vector2.new(0, clampScroll(touchStartCanvas + deltaY))
+            scrollTarget = ScriptsScroll.CanvasPosition.Y
+        end
+    end)
+
+    ScriptsScroll.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            isSwiping = false
+        end
+    end)
+end
+
+--==================================================
+-- CLOSE / SANS EFFECT
+--==================================================
+
+CloseButton.MouseButton1Click:Connect(function()
+
+    if SpinConnection then
+        SpinConnection:Disconnect()
+        SpinConnection = nil
+    end
+
+    BackgroundMusic:Stop()
+
+    MainFrame.Visible = false
+    MusicButton.Visible = false
+
+    ScarySound:Play()
+
+    local ScarySans = Instance.new("ImageLabel")
+    ScarySans.Name = "ScarySans"
+    ScarySans.Size = UDim2.fromOffset(0, 0)
+    ScarySans.Position = UDim2.fromScale(0.5, 0.5)
+    ScarySans.AnchorPoint = Vector2.new(0.5, 0.5)
+    ScarySans.BackgroundTransparency = 1
+    ScarySans.Image = "rbxassetid://10239810201"
+    ScarySans.ZIndex = 50
+    ScarySans.Parent = KeyGui
+
+    TweenService:Create(
+        ScarySans,
+        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        { Size = UDim2.fromOffset(300, 300) }
+    ):Play()
+
+    local ShakeConnection
+    ShakeConnection = RunService.RenderStepped:Connect(function()
+        if not ScarySans.Parent then
+            ShakeConnection:Disconnect()
+            return
+        end
+        local OffsetX = math.random(-8, 8)
+        local OffsetY = math.random(-8, 8)
+        ScarySans.Position = UDim2.new(0.5, OffsetX, 0.5, OffsetY)
+    end)
+
+    task.wait(2.2)
+
+    if ShakeConnection then
+        ShakeConnection:Disconnect()
+    end
+
+    safeDestroy(KeyGui)
+
+    pcall(function()
+        LocalPlayer:Kick("Trying Close Loader? You're gonna have a bad time")
+    end)
+end)
+
+--==================================================
+-- REDEEM KEY
+--==================================================
+
+RedeemButton.MouseButton1Click:Connect(function()
+
+    local EnteredKey = KeyInput.Text
+
+    if EnteredKey == VALID_KEY then
+
+        SuccessSound:Play()
+
+        StatusDescription.Text = "Success! Loading..."
+        StatusDescription.TextColor3 = Color3.fromRGB(36, 175, 84)
+        MainStroke.Color = Color3.fromRGB(36, 175, 84)
+
+        task.wait(0.8)
+
+        if SpinConnection then
+            SpinConnection:Disconnect()
+            SpinConnection = nil
+        end
+
+        -- Fade music
+        task.spawn(function()
+            for i = 1, 10 do
+                if BackgroundMusic.Volume > 0 then
+                    BackgroundMusic.Volume = math.max(0, BackgroundMusic.Volume - 0.06)
+                end
+                task.wait(0.05)
+            end
+            BackgroundMusic:Stop()
+            BackgroundMusic.Volume = 0.6
+        end)
+
+        TweenService:Create(
+            MusicButton,
+            TweenInfo.new(0.8),
+            { ImageTransparency = 1 }
+        ):Play()
+
+        TweenService:Create(
+            MainFrame,
+            TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {
+                Position = UDim2.new(0.5, 0, 1.5, 0),
+                BackgroundTransparency = 1
+            }
+        ):Play()
+
+        TweenService:Create(
+            BlackBackground,
+            TweenInfo.new(0.8),
+            { BackgroundTransparency = 1 }
+        ):Play()
+
+        task.wait(0.8)
+
+        safeDestroy(MainFrame)
+        safeDestroy(MusicButton)
+        safeDestroy(BlackBackground)
+        safeDestroy(KeyGui)
+
+        -- Open selector
+        CreateGameSelector()
+
+    else
+
+        WrongSound:Play()
+
+        StatusDescription.Text = "Invalid Key!"
+        StatusDescription.TextColor3 = Color3.fromRGB(235, 65, 65)
+        MainStroke.Color = Color3.fromRGB(235, 65, 65)
+
+        local OriginalPosition = MainFrame.Position
+        for i = 1, 3 do
+            MainFrame.Position = OriginalPosition + UDim2.fromOffset(6, 0)
+            task.wait(0.04)
+            MainFrame.Position = OriginalPosition + UDim2.fromOffset(-6, 0)
+            task.wait(0.04)
+        end
+        MainFrame.Position = OriginalPosition
+
+        task.wait(1)
+
+        if MainFrame.Parent then
+            StatusDescription.Text = "Enter key"
+            StatusDescription.TextColor3 = Color3.fromRGB(245, 170, 70)
+            MainStroke.Color = Color3.fromRGB(43, 115, 225)
+        end
+    end
+end)
